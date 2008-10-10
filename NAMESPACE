@@ -1,0 +1,5 @@
+importFrom(graphics, plot)
+importFrom(utils, write.table)
+exportClasses(samplePointMatrix, sigSegments)
+exportMethods(plot, write.table, initialize, show, "[[", "[", "[[<-")
+export("calcSpm", "getSigSegments", "findSigLevelTrad", "findSigLevelFdr", "plotScaleSpace", "idPoints")
