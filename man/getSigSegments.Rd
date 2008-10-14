@@ -38,7 +38,7 @@ spm1mb <- calcSpm(hsSampleData, hsMirrorLocs)
 siglevel1mb <- findSigLevelTrad(hsSampleData, spm1mb, n=3)
 
 sigSegments1mb <- getSigSegments(spm1mb, siglevel1mb)
-write.table(sigSegments1mb, file='/tmp/sigSegments1mb.txt')
+\dontrun{write.table(sigSegments1mb, file=paste(tempdir(),'/sigSegments1mb.txt',sep=""))}
 
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
