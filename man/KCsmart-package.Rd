@@ -12,8 +12,8 @@ Multiple sample aCGH analysis using kernel convolution
 \tabular{ll}{
 Package: \tab KCsmart\cr
 Type: \tab Package\cr
-Version: \tab 1.0\cr
-Date: \tab 2008-08-14\cr
+Version: \tab 1.6.0\cr
+Date: \tab 2008-10-08\cr
 License: \tab GPL\cr
 }
 Use the wrapper function 'calcSpm' to calculate the sample point matrix. Use 'findSigLevelTrad' to find a significance threshold using permutation based testing.
