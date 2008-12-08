@@ -13,7 +13,7 @@ idPoints(spm, mode='pos', dev=2, chromosomes=NULL)
   \item{spm}{ The sample point matrix object of which points are to be identified }
   \item{mode}{ Determines which points will be identified: mode='pos' will identify points in gained regions, mode='neg' will identify points in lost regions }
   \item{dev}{ The device on which the sample point matrix was plotted}
-  \item{chromosomes} { If not all chromosomes contained in the sample point matrix were plotted (using the 'chromosomes' argument in the 'plot' command), the same chromosomes must be entered here as an argument}
+  \item{chromosomes}{ If not all chromosomes contained in the sample point matrix were plotted (using the 'chromosomes' argument in the 'plot' command), the same chromosomes must be entered here as an argument}
 }
 \details{
    Using the mouse pointer points in a sample point matrix plot can be identified by left-clicking on the to-be-identified points. Right-clicking exits the selection and returns the selected points.
