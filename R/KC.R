@@ -91,7 +91,7 @@
 			#reset mirrorLength
 			mirrorLength.current <- mirrorLength
 			
-			if(sum(which(cc@probeAnnotation@maploc < cm))){
+			if(sum(cc@probeAnnotation@maploc < cm)){
 				last.probe.before.index <- max(which(cc@probeAnnotation@maploc < cm))
 				last.probe.before <- cc@probeAnnotation@maploc[last.probe.before.index]
 			}
@@ -166,7 +166,7 @@
 
 
 #wrapper functions
-calcSpm <- function(data, mirrorLocs, sigma=1000000, sampleDensity=50000, maxmem=1000){
+calcSpm <- function(data, mirrorLocs, sigma=1000000, sampleDensity=50000, maxmem=1000, verbose=T){
 
 	#do checks
 	#is it CGHbase data?
@@ -191,7 +191,7 @@ calcSpm <- function(data, mirrorLocs, sigma=1000000, sampleDensity=50000, maxmem
 	data <- KCsmart:::.mirrorData(data, mirrorLocs, mirrorLength)
 
 	print("Calculating sample point matrix ..")
-	spm <- KCsmart:::.samplePointMatrix(data, sampleDensity=sampleDensity, sigma=sigma, maxmem=maxmem)
+	spm <- KCsmart:::.samplePointMatrix(data, sampleDensity=sampleDensity, sigma=sigma, maxmem=maxmem, verbose=verbose)
 	rm(data)
 
 	print('Done')

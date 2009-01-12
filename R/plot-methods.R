@@ -105,9 +105,9 @@ setMethod("plot", signature(x="scaleSpace", y="missing"), function(x, y, spm, ty
 	}
 })
 
-setMethod("plot", signature(x="samplePointMatrix", y="missing"), function(x, y, type="b", sigLevels=NULL, chromosomes=NULL, colinAxis=NULL, fillColor=NULL, maploc=NULL, interpolation=1, ...){
+setMethod("plot", signature(x="samplePointMatrix", y="missing"), function(x, y, type="b", sigLevels=NULL, chromosomes=NULL, colinAxis=NULL, fillColor=NULL, maploc=NULL, interpolation=1, main=NULL, col=NULL, ylim=NULL, add=F, ...){
 	mirrorLocs <- x@mirrorLocs
-	
+
 	if(!is.null(fillColor) & is.null(sigLevels)){
 		warning('Fill color given but no significance levels, unable to color significant regions')
 	}
@@ -162,19 +162,27 @@ setMethod("plot", signature(x="samplePointMatrix", y="missing"), function(x, y, 
 		
 	maxy <- x@maxy
 	miny <- x@miny
-	
+
+	#set default plot arguments
+	if(type == 1){
+		if(is.null(main)) main = 'Gains and losses'
+		if(is.null(ylim)) ylim = c(miny, maxy)
+	}
+	else{
+		if(is.null(main)) main = 'Gains'
+		if(is.null(ylim)) ylim = c(0, maxy)
+	}
+
+	if(is.null(col)) col = 'black'
+
 	#gains
 	
 	if(type == 'g' | type == 'b' | type == 1){
 
-	if(type==1){
-		posminy <- miny
-	}
-	else{
-		posminy <- 0
+	if(!add){
+		plot(0,0,xlim=c(0, total), ylim=ylim,col='white', xaxt="n", main=main, xlab='Genomic position (in mb)', ylab='Normalized KC score', ...)
 	}
 	
-	plot(0,0,xlim=c(0, total), ylim=c(posminy,maxy),col='white', xaxt="n", main='Gains', xlab='Genomic position (in mb)', ylab='Normalized KC score', ...)
 	xOffset <- 0
 	abline(v=xOffset,col='darkblue')
 	for(i in chromosomes){
@@ -200,7 +208,7 @@ setMethod("plot", signature(x="samplePointMatrix", y="missing"), function(x, y, 
 		}
 		#to avoid getting really large images the user can set an interpolation
 		plottingPoints <- seq(1,length(x[[i]]$pos), by=interpolation)
-		lines(xOffset + plottingPoints, x[[i]]$pos[plottingPoints], type="l")
+		lines(xOffset + plottingPoints, x[[i]]$pos[plottingPoints], type="l", col=col)
 		
 		chromosome.length <- 0
 		#if centromere is present, plot it
@@ -239,8 +247,10 @@ setMethod("plot", signature(x="samplePointMatrix", y="missing"), function(x, y, 
 	if(type == 'l' | type == 'b' | type == 1){
 	
 	#if not in 1 plot, open new device
-	if(type != 1){
-		plot(0,0,xlim=c(0, total), ylim=c(miny, 0), col='white', xaxt="n",main='Losses', xlab='Genomic position (in mb)', ylab='Normalized KC score', ...)
+	if(type != 1 & !add){
+		main = 'Losses'
+		ylim = c(miny, 0)
+		plot(0,0,xlim=c(0, total), ylim=ylim, col='white', xaxt="n",main=main, xlab='Genomic position (in mb)', ylab='Normalized KC score', ...)
 	}
 	xOffset <- 0
 	abline(v=xOffset,col='darkblue')
@@ -266,7 +276,7 @@ setMethod("plot", signature(x="samplePointMatrix", y="missing"), function(x, y, 
 		}
 		
 		plottingPoints <- seq(1,length(x[[i]]$neg), by=interpolation)
-		lines(xOffset + plottingPoints, x[[i]]$neg[plottingPoints], type="l")
+		lines(xOffset + plottingPoints, x[[i]]$neg[plottingPoints], type="l", col=col)
 		
 		#if centromere is present, plot it
 		if(length(mirrorLocs[[chromosome]]) == 3){

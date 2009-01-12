@@ -6,7 +6,7 @@
   Wrapper function that calculates the sample point matrix from the aCGH data
 }
 \usage{
-calcSpm(data, mirrorLocs, sigma = 1e+06, sampleDensity = 50000, maxmem = 1000)
+calcSpm(data, mirrorLocs, sigma = 1e+06, sampleDensity = 50000, maxmem = 1000, verbose=T)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -15,6 +15,7 @@ calcSpm(data, mirrorLocs, sigma = 1e+06, sampleDensity = 50000, maxmem = 1000)
   \item{sigma}{ The kernel width }
   \item{sampleDensity}{ The sample point matrix resolution }
   \item{maxmem}{ This parameter controls memory usage, set to lower value to lower memory consumption }
+  \item{verbose}{ If set to false, no progress information is displayed }
 }
 \details{
   'data' can be in cghRaw (CGHbase), DNAcopy or in data.frame format. When using the latter, the data.frame must have the following two columns: 'chrom' stating the chromosome
