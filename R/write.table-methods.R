@@ -12,6 +12,12 @@ setMethod("write.table", signature(x="sigSegments"), function(x, file="", append
 	writeMatrix <- rbind(cbind('G', gainsMatrix), cbind('L', lossesMatrix))
 	
 	write.table(writeMatrix, file=file, append=append, quote=quote, sep=sep, eol=eol, na=na, dec=dec, row.names=row.names,
-                 col.names=c("Status", "Chromosome", "Start", "End", "Average KC score", "Mode KC score", "Probes"), qmethod=qmethod)
+                 col.names=col.names, qmethod=qmethod)
 	cat(paste("Output written to file", file, "\n"))
+})
+
+setMethod("write.table", signature(x="compKcSigRegions"), function(x, file="", append = FALSE, quote = 7, sep = "\t", eol = "\n", na = "NA", dec = ".", row.names = FALSE, col.names=c("startrow", "endrow", "chromosome", "startposition", "endposition"), qmethod = c("escape", "double")){
+	write.table(x@regionTable, file=file, append=append, quote=quote, sep=sep, eol=eol, na=na, dec=dec, row.names=row.names,
+                 col.names=col.names, qmethod=qmethod)	
+
 })

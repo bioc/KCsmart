@@ -153,6 +153,54 @@
 	return(data)
 }
 
+.spm2spmc <- function(spm){
+  if(!is(spm, "samplePointMatrix")){stop("Need samplePointMatrix object as input")}
+    
+	sampleDensity <- spm@sampleDensity
+	mirrorLocs <- spm@mirrorLocs
+
+	chromosomes <- names(spm@data)
+	chromNames <- attr(mirrorLocs, 'chromNames')
+	chromosomesOrdered <- chromNames[chromNames %in% chromosomes]
+	chromosomesOrdered <- c(chromosomesOrdered, chromosomes[!(chromosomes %in% chromNames)])
+	chromosomes <- chromosomesOrdered
+
+	spmCollection <- new("spmCollection")
+	spmCollection@mirrorLocs <- mirrorLocs
+	spmCollection@sigma <- spm@sigma
+	spmCollection@sampleDensity <- spm@sampleDensity
+	spmCollection@data <- matrix(ncol=1, nrow=0)
+	tmpAnnotation <- vector(mode="list")
+	
+	for(i in chromosomes){	
+		#browser()	
+		spmCollection@data <- rbind(spmCollection@data, matrix(as.numeric(spm[[i]]$pos) + as.numeric(spm[[i]]$neg)))
+		
+		nrSamplePoints <- length(spm[[i]]$pos)
+		samplePointPositions <- seq(1, (nrSamplePoints*sampleDensity), by=sampleDensity)
+		tmpAnnotation$chrom <- c(tmpAnnotation$chrom, rep(i, nrSamplePoints))
+		tmpAnnotation$maploc <- c(tmpAnnotation$maploc, as.numeric(samplePointPositions))
+	}
+
+	spmCollection@annotation <- new("probeAnnotation", tmpAnnotation$chrom, tmpAnnotation$maploc)
+	
+	
+	return(spmCollection)
+}
+
+.add2spmc <- function(spmc, spm){
+	chromosomes <- unique(spmc@annotation@chromosome)
+	tempData <- matrix(ncol=1, nrow=0)
+	
+	for(i in chromosomes){		
+		tempData <- rbind(tempData, matrix(as.numeric(spm[[i]]$pos) + as.numeric(spm[[i]]$neg)))
+	}
+	
+	spmc@data <- cbind(spmc@data, tempData)
+	
+	return(spmc)
+}
+
 
 .convertCGHbase <-function(cghBase){
 	#convert cghRaw to internal data representation
@@ -196,6 +244,97 @@ calcSpm <- function(data, mirrorLocs, sigma=1000000, sampleDensity=50000, maxmem
 
 	print('Done')
 	return(spm)
+}
+
+calcSpmCollection <- function(data, mirrorLocs, cl=NULL, data2=NULL, sigma=1000000, sampleDensity=50000, maxmem=1000, verbose=F, doChecks=T){
+
+	#do checks
+	#is it CGHbase data?
+	if(doChecks){
+	
+		if(is.null(data2) & is.null(cl)){
+			stop('Please provide a default class vector or a second data set')
+		}
+	
+		if(is(data, "cghRaw")){
+			data <- KCsmart:::.convertCGHbase(data)
+		}
+	
+		if(!is(data, "KcghData")){
+			data <- new("KcghData", data)
+		}
+		
+		#checks for 2nd data set
+		if(!is.null(data2)){
+			if(is(data2, "cghRaw")){
+				data2 <- KCsmart:::.convertCGHbase(data2)
+			}
+	
+			if(!is(data2, "KcghData")){
+				data2 <- new("KcghData", data2)
+			}
+			if(!all.equal(data@probeAnnotation, data2@probeAnnotation)) {stop("The data has different annotations, unable to continue")}
+		}
+		
+		
+		mirrorLocs <- KCsmart:::.checkMirrorLocs(mirrorLocs, data)
+	}
+	
+	nrSamples <- ncol(data@data)
+	mirrorLength <- sigma * 4
+	
+	#print("Splitting data ..")
+	data <- new("KcghDataSplit", data)
+	
+	originalData <- data
+
+	for(i in 1:nrSamples){
+		cat(paste("Processing sample", i, "/", nrSamples, "\r"))
+		#single sample construction
+		
+		#copy probeAnnotations
+		singleSample <- originalData
+		singleSample@pos <- originalData@pos[,i, drop=F]
+		singleSample@neg <- originalData@neg[,i, drop=F]
+		singleSample <- new("KcghDataSum", singleSample)  
+		
+		data <- singleSample
+		
+		#cat(paste("Mirroring data ..","\r"))
+		data <- KCsmart:::.mirrorData(data, mirrorLocs, mirrorLength)
+	
+		#cat(paste("Calculating sample point matrix ..","\r"))
+		spm <- KCsmart:::.samplePointMatrix(data, sampleDensity=sampleDensity, sigma=sigma, maxmem=maxmem, verbose=verbose)
+		rm(data)
+		
+		#cat(paste("Converting to spmc ..","\r"))
+		if(!exists("spmc")){
+			spmc <- KCsmart:::.spm2spmc(spm)
+		}
+		else{
+			spmc <- KCsmart:::.add2spmc(spmc, spm)
+		}
+	}
+	
+	cat("\n")
+	
+	if(!is.null(cl)){
+		if(sum(cl == 0 | cl == 1) != nrSamples) {stop('Invalid class vector given')}
+		else{
+			spmc@cl <- cl
+		}
+	}
+	
+	if(!is.null(data2)){
+		spmc2 <- calcSpmCollection(data2, spmc@mirrorLocs, cl=cl, data2=NULL, sigma=sigma, sampleDensity=sampleDensity, maxmem=maxmem, verbose=verbose, doChecks=F)
+		nrSamplesFirstClass <- ncol(spmc@data)
+		spmc@data <- cbind(spmc@data, spmc2@data)
+		rm(spmc2)
+		spmc@cl <- c(rep(0, nrSamplesFirstClass), rep(1, (ncol(spmc@data) - nrSamplesFirstClass)))
+	}
+	
+	
+	return(spmc)
 }
 
 
@@ -279,7 +418,7 @@ findSigLevelFdr <- function(data, observedSpm, n=1, fdrTarget=0.05, maxmem=1000)
 }
 
 
-.findPeaks <- function(data, mode='pos'){
+.findPeaks_old <- function(data, mode='pos'){
 	data <- data[!is.na(data)]
 	dataOriginal <- data
 	
@@ -300,6 +439,20 @@ findSigLevelFdr <- function(data, observedSpm, n=1, fdrTarget=0.05, maxmem=1000)
 	return(peaks)
 }
 
+.findPeaks <- function(data, mode='pos'){
+    dir <- ifelse(mode=="pos", -2, 2)
+    data <- data[!is.na(data)]
+    dataOriginal <- data[-1]
+   
+    data <- diff.default(data)
+    data[data > 0] <- 1
+    data[data < 0] <- -1
+    nonFlats <- data != 0
+
+    data2 <- diff.default(data[nonFlats])
+   
+    dataOriginal[nonFlats][data2 == dir]
+}
 
 
 .findCutoffByFdr <- function(observed, permuted, fdr=0.05, precision=0.01){
@@ -465,7 +618,7 @@ findSigLevelFdr <- function(data, observedSpm, n=1, fdrTarget=0.05, maxmem=1000)
 		attr(spm[[i]], 'chromosome') <- chromIndex 
 		rm(stored.cspm)
 		
-		gc()
+		#gc()
 	}
 	
 	total <- 0
@@ -691,3 +844,247 @@ idPoints <- function(spm, mode='pos', dev=2, chromosomes=NULL){
 		return(selectedPoints)
 	}
 }
+
+compareSpmCollection <- function(spmCollection, nperms=20, method=c("siggenes", "perm"), siggenes.args=NULL, altcl=NULL) {
+
+	method <- match.arg(method)
+	stopifnot(is(spmCollection,"spmCollection"))
+	if(!is.null(altcl)){
+		if((sum(altcl == 0 | altcl == 1)) != length(spmCollection@cl)){stop('Invalid class vector given')}
+		else{
+			spmCollection@cl <- altcl
+		}
+	}
+
+	res <- switch(method,
+		siggenes = KCsmart:::.comparativeKcSiggenes(spmCollection@data, spmCollection@cl, nperms=nperms, siggenes.args),
+		perm = KCsmart:::.comparativeKcPerms(spmCollection@data, spmCollection@cl , nperms=nperms))
+
+	new("compKc", spmCollection, method, res)
+}
+
+getSigRegionsCompKC <- function(compKc, fdr=.01, maxRegionGap=10) {
+
+	stopifnot(is(compKc,"compKc"))
+
+	#prepare the result stuff
+	siglist <- list()
+	
+	if(compKc@method == "siggenes") {
+		#get all dvalues from sam
+		a <- compKc@siggenesResult
+		siglist$testval <- a@d
+		#find delat, suppress output
+		sink(tempfile())
+		deltas <- findDelta(a,fdr=fdr)
+		sink()
+		siglist$cutoff <- ifelse(is.matrix(deltas), deltas[2,1], deltas[1])
+		siggeneslist <- multtest:::summary(a, siglist$cutoff)
+		siglist$issignificant <- 1:nrow(compKc@spmCollection@data) %in% siggeneslist@mat.sig$Row
+	}
+	else {
+		siglist$cutoff <- KCsmart:::.findfdrcutoff(compKc@snrResult@permutations, compKc@snrResult@snrValues, fdr)
+		siglist$testval <- compKc@snrResult@snrValues
+		siglist$issignificant <- abs(siglist$testval) > siglist$cutoff
+	}
+	
+	#replace NA in sig vector with FALSE
+	siglist$issignificant[is.na(siglist$issignificant)] <- FALSE
+	#determine regions
+	regions <- KCsmart:::.getRegions(siglist$issignificant, maxRegionGap)
+
+	#add annotation to regiontable
+	regions$startchrom <- compKc@spmCollection@annotation@chromosome[regions$startrow]
+	regions$endchrom <- compKc@spmCollection@annotation@chromosome[regions$endrow]
+
+	#split regions on chromsome border
+	if(any(regions$startchrom != regions$endchrom)) {
+		tosplit <- subset(regions, regions$startchrom != regions$endchrom)
+		notsplit <- subset(regions, regions$startchrom == regions$endchrom)
+	
+		for(i in 1:nrow(tosplit)) {
+			s <- tosplit[i,]
+			done <- F
+			repeat {
+				chendrow <- max(which(compKc@spmCollection@annotation@chromosome == s$startchrom))
+				notsplit <- rbind(notsplit, c(s$startrow, chendrow, s$startchrom, s$startchrom))
+				if(done) break;
+
+				s$startchrom <- compKc@spmCollection@annotation@chromosome[chendrow+1]
+				s$startrow <- chendrow+1
+
+				if(s$startchrom == s$endchrom) done <- T
+			}
+		}
+		#sort table
+		regions <- notsplit[order(notsplit$startrow),]
+		
+	}
+	startposition <- compKc@spmCollection@annotation@maploc[regions$startrow]
+	endposition <- compKc@spmCollection@annotation@maploc[regions$endrow]
+
+	new("compKcSigRegions", 
+	   regionTable=data.frame(startrow=regions$startrow, endrow=regions$endrow, chromosome=regions$startchrom, startposition, endposition), 
+	   method=compKc@method, fdr=fdr, cutoff=siglist$cutoff)
+}
+
+.comparativeKcSiggenes <- function(data, cl, nperms, args=NULL) {
+	require(siggenes)
+
+	callargs <- c(list(data, cl, B=nperms), args)
+	do.call(sam, callargs)
+}
+
+.comparativeKcPerms <- function(data, cl, nperms) {
+
+	snrresults <- KCsmart:::.snr(data[,cl==0], data[,cl==1])
+
+	#prepare the permutations
+	perms <- KCsmart:::.makePermutations(sum(cl==0), sum(cl==1), nperms)
+
+	m <- matrix(NA, nrow=nrow(data), ncol=length(perms))
+	for(p in 1:length(perms)) {
+		m[,p] <- KCsmart:::.snr(data[,perms[[p]]$a], data[,perms[[p]]$b], s0=snrresults$s0)
+	}
+	
+	new("snrResult", snrValues=snrresults$snr, fudge=snrresults$s0, permutations=m)
+}
+
+.makePermutations <- function(sizeA, sizeB, nperms=2000) {
+	#How many perms are there?
+	totalperms <- choose(sizeA+sizeB, sizeA)
+	n <- sizeA+sizeB
+	a <- 1:sizeA
+	b <- (sizeA+1):n
+
+	#FIXME: if totalperms !>> nperms we should select perms from allperms to avoid duplicates
+	if(totalperms > nperms) {
+		return(lapply(1:nperms, function(x){z <- sample(n); return(list(a=z[a], b=z[b]))}))
+	}
+	else {
+		warning("There are only ", totalperms," permutations. Returning all")
+		#TODO: implemtent all perms
+
+	}
+}
+
+.snr <- function(a, b, s0=NULL) {
+	n1 <- ncol(a)
+	n2 <- ncol(b)
+	
+	n1row <- rep(n1, nrow(a)) - rowSums(is.na(a))
+	n2row <- rep(n2, nrow(a)) - rowSums(is.na(b))
+
+	m1 <- rowMeans(a,na.rm=T)
+	m2 <- rowMeans(b,na.rm=T)
+
+	var1 <- KCsmart:::.varr(a, meanx=m1, n1row)
+	var2 <- KCsmart:::.varr(b, meanx=m2, n2row)
+	
+	sigma12 <- sqrt( (var1/n1row) +  (var2/n2row ) )
+
+	if(is.null(s0)){
+		s0 <- quantile(sigma12, .95, na.rm=T)
+		return(list(snr=(m1-m2)/(sigma12 + s0), s0=s0))
+	} else {
+		return(	(m1-m2)/(sigma12 + s0))
+	}
+}
+
+.varr <- function(x, meanx, nna=NULL) {
+	n <- ncol(x)
+	p <- nrow(x)
+	Y <-matrix(1,nrow=1,ncol=n)
+	#calc nna vector if not provided
+	if(is.null(nna)) nna <- rep(n, p) - rowSums(is.na(x))
+	nnam <- (1/(nna-1))
+	xdif <- x - (meanx %*% Y)
+	ans <- rowSums(xdif^2, na.rm=T) * nnam
+	ans[nnam==1] <- NA
+	drop(ans)
+}
+
+.findfdrcutoff <- function(permdata, realdata, fdr=.01, tails=c("both", "up", "down")) {
+	tails <- match.arg(tails)
+
+	if(tails == "down") {
+		realdata <- -realdata
+		permdata <- -permdata
+	}
+
+	if(tails == "both") {
+		permdata <- abs(permdata)
+	}
+
+	#sort by default removes NA values
+	sr <- switch(tails, 
+	   both=sort(abs(realdata), decreasing=T),
+	   sort(realdata, decreasing=T))
+
+	l <- length(sr)
+	#pick the 50% point to test for fdr
+	p <- floor(l/2)
+
+	cat("Start fdr test value =", sr[p])
+	tfdr <- mean(colSums(permdata > sr[p], na.rm=T))/p
+	cat(sr[p]," fdr =", tfdr,"\n")
+	stepfraction <- 0.5
+	stepsize <- ceiling(p*stepfraction)
+	up <- 0
+	while(stepsize > 1) {
+		#up or down?
+		newup <- ifelse(( tfdr - fdr) > 0,0,1)
+		if(newup != up) stepfraction <- stepfraction/2
+		up <- newup
+		stepsize <- ceiling(p*stepfraction)
+
+		p <- ifelse(up == 0,p-stepsize, p+stepsize)
+		tfdr <- mean(colSums(abs(permdata) > sr[p], na.rm=T))/p
+		cat("p=", p, "step=", stepsize, ", ", sr[p], " fdr =", tfdr,"\n")
+	}
+	return (sr[p])
+}
+
+
+.getRegions <- function(v, allowedGapsize=10) {
+		ss <- c(0,v) - c(v,0)
+		starts <- which(ss == -1)
+		ends <- which(ss == 1)-1
+		if(length(starts) == 0) {
+			return(data.frame())
+		}
+		
+		if(length(starts) == 1) {
+			return(data.frame(startrow=starts, endrow=ends))
+		}
+		gapsizes <- c(0, starts[-1] - ends[-length(ends)] -1)
+
+		joinedstarts <- numeric()
+		joinedends <- numeric()
+		pos <- 1
+		ingap <- 0
+		
+		if(allowedGapsize > 0) {
+			for(i in 1:(length(starts)-1)) {
+				if(ingap == 0) joinedstarts[pos] <- starts[i]
+
+				if(gapsizes[i+1] <= allowedGapsize) {
+					joinedends[pos] <- ends[i+1]
+					ingap <- 1
+				}
+				else {
+					joinedends[pos] <- ends[i]
+					ingap <- 0
+					pos <- pos+1
+					if(i == (length(starts)-1)) {
+						joinedstarts[pos] <- starts[i+1]
+						joinedends[pos] <- ends[i+1]
+					}
+				}
+			}
+			return(data.frame(startrow=joinedstarts, endrow=joinedends)) 
+		}
+	return(data.frame(startrow=starts, endrow=ends)) 
+}
+
+

@@ -9,6 +9,11 @@ setClass("sigSegments", representation(gains="list", losses="list", sigma="integ
 setClass("sigRegions", representation(sigma="integer"), contains="KCData")
 setClass("scaleSpace", contains="KCData")
 
+setClass("spmCollection", representation(data="matrix", annotation="probeAnnotation", cl="vector", mirrorLocs="list", sampleDensity="integer", sigma="integer"))
+setClass("snrResult", representation(snrValues="numeric", fudge="numeric", permutations="matrix"))
+setClass("compKc", representation(spmCollection="spmCollection", method="character", siggenesResult="SAM", snrResult="snrResult"))
+setClass("compKcSigRegions", representation(regionTable="data.frame", method="character", cutoff="numeric", fdr="numeric"))
+
 setMethod("initialize", "KcghData", function(.Object, cghData){
     .Object@probeAnnotation <- new("probeAnnotation", cghData$chrom, cghData$maploc, row.names(cghData))
     .Object@data <- as.matrix(cghData[,3:ncol(cghData)])
@@ -84,3 +89,27 @@ setMethod("initialize", signature("KcghDataMirror"), function(.Object, mirrorLoc
 
     .Object
 })
+
+
+
+setMethod("initialize", signature("compKc"), function(.Object, spmCollection, method=c("siggenes", "perm"), comparedata) {
+	
+	method <- match.arg(method)
+
+	if(!is(spmCollection,"spmCollection")){stop("Need spmCollection object as input")}
+
+	.Object@spmCollection <- spmCollection
+	
+	if(is(comparedata,"snrResult"))
+		.Object@snrResult <- comparedata
+	else if (is(comparedata,"SAM"))
+		.Object@siggenesResult <- comparedata
+	else
+		stop("comparedata needs to be either SAM or snrResult")
+
+	
+	.Object@method <- method
+	.Object	
+})
+
+

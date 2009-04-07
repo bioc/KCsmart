@@ -105,6 +105,133 @@ setMethod("plot", signature(x="scaleSpace", y="missing"), function(x, y, spm, ty
 	}
 })
 
+setMethod("plot", signature(x="compKc", y="missing"), function(x, sigRegions=NULL, type="b", chromosomes=NULL, colinAxis=NULL, maploc=NULL, interpolation=1, main=NULL, col1=NULL, col2=NULL, ylim=NULL, add=F, ...){
+	mirrorLocs <- x@spmCollection@mirrorLocs
+
+	if(type == 'b'){
+		layout(c(1,2))
+	}
+	
+	colinAxis <- FALSE
+	
+	if(is.null(chromosomes)) {
+		chromosomes <- 1:length(mirrorLocs)
+		colinAxis <- T
+	} else {
+		stop("Plotting selected chromosome not yet supported")
+		chromosomes <- sort(match(chromosomes, attr(mirrorLocs, 'chromNames')))
+	}
+
+	#check missing chr in data
+	chromNames <- attr(mirrorLocs, 'chromNames')
+	chromLengths <- table(x@spmCollection@annotation@chromosome)
+	chromLengths <- chromLengths[chromNames]
+	chromSizes <- sapply(mirrorLocs, max)
+	names(chromSizes) <- attr(mirrorLocs, 'chromNames')
+	total <- sum(chromLengths[chromNames[chromosomes]])
+	totalbp <- sum(chromSizes[chromNames[chromosomes]])
+
+	sampDensity <- totalbp / total
+
+	#plot roMeans panel
+	ycl0 <- rowMeans(x@spmCollection@data[,x@spmCollection@cl==0], na.rm=T)
+	ycl1 <- rowMeans(x@spmCollection@data[,x@spmCollection@cl==1], na.rm=T)
+
+	ylim <- range(ycl0, ycl1, na.rm=T)
+
+	if(is.null(col1)) col1 <- "black"
+	if(is.null(col2)) col2 <- "gray"
+
+	plot(0,0,xlim=c(0, total), ylim=ylim,type="n", xaxt="n", main=main, xlab='Genomic position (in mb)', ylab='rowMeans spmCollection', ...)
+	
+	xOffset <- 0
+	abline(v=xOffset,col='darkblue')
+	for(i in chromosomes){
+		chromosome <- chromNames[i]
+
+		#draw rectangle where if sigregions is provided
+		if(!is.null(sigRegions)) {
+			r <- sigRegions@regionTable[sigRegions@regionTable$chromosome == chromosome,]
+			if(nrow(r) >0)
+				rect(xleft=r$startrow, ybottom=ylim[1], xright=r$endrow, ytop=ylim[2], col="lightgray", border=NA)
+		}
+
+		#to avoid getting really large images the user can set an interpolation
+		plottingPoints <- seq(1,chromLengths[chromosome], by=interpolation)
+		lines(xOffset + plottingPoints, ycl0[plottingPoints+xOffset], type="l", col=col1)
+		lines(xOffset + plottingPoints, ycl1[plottingPoints+xOffset], type="l", col=col2)
+		
+		#if centromere is present, plot it
+		if(length(mirrorLocs[[i]]) == 3){
+			centromereLoc <- xOffset + (mirrorLocs[[i]][2]/sampDensity)
+			abline(v=centromereLoc, col='lightblue', lty=2)
+		}
+		text(xOffset,ylim[2], labels=chromNames[i], pos=4, cex=0.6)
+		if(!colinAxis){
+			labs <- pretty(c(0, chromSizes[chromosome]/1e6), n=3)
+			labs <- labs[labs < .85*chromSizes[chromosome]/1e6 ]
+			axis(1,labs, at=(labs*1e6/sampDensity)+xOffset)
+		}
+		xOffset <- xOffset + chromLengths[chromosome]
+		abline(v=xOffset,col='darkblue')
+	}
+	
+	if(colinAxis){
+		labs <- pretty(c(0, totalbp/1e6), n=5)
+		axis(1,labs, at=labs*1e6/sampDensity)
+	}
+
+	#plot snr panel if type="b"
+	if(type == 'b'){
+	ysnr <- switch(x@method, siggenes=x@siggenesResult@d, perm=x@snrResult@snrValues)
+	yname <- ifelse(x@method=="siggenes", "d values", "SNR value")
+
+	ylim <- range(ysnr, na.rm=T)
+
+	if(is.null(col1)) col1 <- "black"
+	if(is.null(col2)) col2 <- "gray"
+
+	plot(0,0,xlim=c(0, total), ylim=ylim,type="n", xaxt="n", main=main, xlab='Genomic position (in mb)', ylab=yname, ...)
+	
+	xOffset <- 0
+	abline(v=xOffset,col='darkblue')
+	if(!is.null(sigRegions) & x@method=="perm") 
+		abline(h=c(-sigRegions@cutoff, sigRegions@cutoff), col="yellow")
+
+	for(i in chromosomes){
+		chromosome <- chromNames[i]
+		#draw rectangle where if sigregions is provided
+		if(!is.null(sigRegions)) {
+			r <- sigRegions@regionTable[sigRegions@regionTable$chromosome == chromosome,]
+			if(nrow(r) >0)
+				rect(xleft=r$startrow, ybottom=ylim[1], xright=r$endrow, ytop=ylim[2], col="lightgray", border=NA)
+		}
+		#to avoid getting really large images the user can set an interpolation
+		plottingPoints <- seq(1,chromLengths[chromosome], by=interpolation)
+		lines(xOffset + plottingPoints, ysnr[plottingPoints+xOffset], type="l", col=col1)
+		
+		#if centromere is present, plot it
+		if(length(mirrorLocs[[i]]) == 3){
+			centromereLoc <- xOffset + (mirrorLocs[[i]][2]/sampDensity)
+			abline(v=centromereLoc, col='lightblue', lty=2)
+		}
+		text(xOffset,ylim[2], labels=chromNames[i], pos=4, cex=0.6)
+		if(!colinAxis){
+			labs <- pretty(c(0, chromSizes[chromosome]/1e6), n=3)
+			labs <- labs[labs < .85*chromSizes[chromosome]/1e6 ]
+			axis(1,labs, at=(labs*1e6/sampDensity)+xOffset)
+		}
+		xOffset <- xOffset + chromLengths[chromosome]
+		abline(v=xOffset,col='darkblue')
+	}
+	
+	if(colinAxis){
+		labs <- pretty(c(0, totalbp/1e6), n=5)
+		axis(1,labs, at=labs*1e6/sampDensity)
+	}
+	}
+})
+
 setMethod("plot", signature(x="samplePointMatrix", y="missing"), function(x, y, type="b", sigLevels=NULL, chromosomes=NULL, colinAxis=NULL, fillColor=NULL, maploc=NULL, interpolation=1, main=NULL, col=NULL, ylim=NULL, add=F, ...){
 	mirrorLocs <- x@mirrorLocs
 
@@ -180,7 +307,7 @@ setMethod("plot", signature(x="samplePointMatrix", y="missing"), function(x, y, 
 	if(type == 'g' | type == 'b' | type == 1){
 
 	if(!add){
-		plot(0,0,xlim=c(0, total), ylim=ylim,col='white', xaxt="n", main=main, xlab='Genomic position (in mb)', ylab='Normalized KC score', ...)
+		plot(0,0,xlim=c(0, total), ylim=ylim, type="n", xaxt="n", main=main, xlab='Genomic position (in mb)', ylab='Normalized KC score', ...)
 	}
 	
 	xOffset <- 0
@@ -302,3 +429,7 @@ setMethod("plot", signature(x="samplePointMatrix", y="missing"), function(x, y, 
 	}
 	}
 })
+
+
+
+

@@ -1,5 +1,5 @@
-importFrom(graphics, plot)
+importFrom(multtest, plot)
 importFrom(utils, write.table)
-exportClasses(samplePointMatrix, sigSegments)
+exportClasses(samplePointMatrix, sigSegments, spmCollection, compKc, compKcSigRegions)
 exportMethods(plot, write.table, initialize, show, "[[", "[", "[[<-")
-export("calcSpm", "getSigSegments", "findSigLevelTrad", "findSigLevelFdr", "plotScaleSpace", "idPoints")
+export("calcSpm", "calcSpmCollection", "getSigSegments", "findSigLevelTrad", "findSigLevelFdr", "plotScaleSpace", "idPoints","compareSpmCollection","getSigRegionsCompKC")

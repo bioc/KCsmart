@@ -2,6 +2,7 @@
 \docType{methods}
 \alias{write.table}
 \alias{write.table,sigSegments-method}
+\alias{write.table,compKcSigRegions-method}
 
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Write summary of the significant regions to a table}
@@ -9,13 +10,8 @@
 Write summary of the significant regions to a table
 }
 \usage{
-write.table(x, file, append, quote, sep, eol, na, dec, 
-            row.names, col.names, qmethod) 
-
-\S4method{write.table}{sigSegments}(x, file="", append = FALSE, quote = 7, 
-    sep = "\t", eol = "\n", na = "NA", dec = ".", row.names = TRUE,
-    col.names=c("Status", "Chromosome", "Start", "End", "Average KC score", 
-    "Mode KC score", "Probes"), qmethod = c("escape", "double")) 
+write.table(x, file, append, quote, sep, eol, na, dec, row.names, col.names, qmethod)
+\S4method{write.table}{sigSegments}(x, file="", append = FALSE, quote = 7, sep = "\t", eol = "\n", na = "NA", dec = ".", row.names = TRUE, col.names=c("#", "Status", "Chromosome", "Start", "End", "Average KC score", "Mode KC score", "Probes"), qmethod = c("escape", "double"))
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -62,22 +58,14 @@ write.table(x, file, append, quote, sep, eol, na, dec,
 
 }
 \details{
-Writes a summary of the sigSegments object to file. The resulting table
-contains 7 columns. The interpretation of the columns is as follows:
-\tabular{rl}{
-   Status     \tab Either 'L' for loss or 'G' for gain \cr    
-   Chromosome \tab The chromosome on which this segment is located \cr
-   Start      \tab The start position (in base pairs) of the segment on \cr
-               \tab the chromosome \cr
-   End	       \tab The end position of the segment on the chromosome \cr
-   Average KC score \tab The average KCsmart score over all base pairs in \cr
-                     \tab     this segment \cr
-   Mode KC score \tab The highest (for gains) or lowest (for losses) KCsmart \cr
-                 \tab score over all base pairs in this segment \cr
-    Probes \tab All probes from the original data that fall into this \cr
-    	   \tab segment 
-               
-    }
+Writes a summary of the sigSegments object to file. The resulting table contains 7 columns. The interpretation of the columns is as follows:
+    \item{Status}{Either 'L' for loss or 'G' for gain}
+    \item{Chromosome}{The chromosome on which this segment is located}
+    \item{Start}{The start position (in base pairs) of the segment on the chromosome}
+    \item{End}{The end position of the segment on the chromosome}
+    \item{Average KC score}{The average KCsmart score over all base pairs in this segment}
+    \item{Mode KC score}{The highest (for gains) or lowest (for losses) KCsmart score over all base pairs in this segment}
+    \item{Probes}{All probes from the original data that fall into this segment}
 }
 \value{
 
