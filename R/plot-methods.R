@@ -105,7 +105,7 @@ setMethod("plot", signature(x="scaleSpace", y="missing"), function(x, y, spm, ty
 	}
 })
 
-setMethod("plot", signature(x="compKc", y="missing"), function(x, sigRegions=NULL, type="b", chromosomes=NULL, colinAxis=NULL, maploc=NULL, interpolation=1, main=NULL, col1=NULL, col2=NULL, ylim=NULL, add=F, ...){
+setMethod("plot", signature(x="compKc", y="missing"), function(x, sigRegions=NULL, type="1", chromosomes=NULL, colinAxis=NULL, maploc=NULL, interpolation=1, main=NULL, col1=NULL, col2=NULL, ylim=NULL, add=F, ...){
 	mirrorLocs <- x@spmCollection@mirrorLocs
 
 	if(type == 'b'){
