@@ -58,7 +58,10 @@ data(hsSampleData)
 data(hsMirrorLocs)
 
 spmc1mb <- calcSpmCollection(hsSampleData, hsMirrorLocs, cl=c(rep(0,10),rep(1,10)))
+spmcc1mb <- compareSpmCollection(spmc1mb, nperms=3)
+spmcc1mbSigRegions <- getSigRegionsCompKC(spmcc1mb)
 
+plot(spmcc1mb, sigRegions=spmcc1mbSigRegions)
 
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
