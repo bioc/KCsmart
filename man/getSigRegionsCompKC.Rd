@@ -30,7 +30,7 @@ getSigRegionsCompKC(compKc, fdr=.01, maxRegionGap=10)
 \note{ 
 }
 \seealso{ 
-\code{\link{compareSpmCollection}},  \code{\link{getSigRegionsCompKC}}}
+\code{\link{compareSpmCollection}},  \code{\link{getSigRegionsCompKC}}
 }
 \examples{
 data(hsSampleData)

@@ -21,7 +21,7 @@ plot(x,y, ...)
   \item{y}{object of class missing}
   \item{type}{ Determines which data is plotted. 'g' for gains only, 'l' for losses only and 'b' and '1' for both in one plot device}
   \item{spm}{ add stuff here}
-  \item{sigRegions} { The significant regions as calculated by the compKcSigRegions function}
+  \item{sigRegions}{ The significant regions as calculated by the compKcSigRegions function}
   \item{sigLevels}{ If given, the cutoffs will be drawn as lines in the plots. Optional }
   \item{chromosomes}{ Takes a vector of chromosomes to be plotted. Defaults to all chromosomes. }
   \item{colinAxis}{ Allows you to override default behaviour of axis labeling. Choose False for genomic position labeling for each individual chromosome, True for colinear labeling.}

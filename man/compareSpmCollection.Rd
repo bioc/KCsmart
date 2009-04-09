@@ -28,7 +28,7 @@ compareSpmCollection(spmCollection, nperms=20, method=c("siggenes", "perm"), sig
 \note{ 
 }
 \seealso{ 
-\code{\link{compareSpmCollection}},  \code{\link{getSigRegionsCompKC}}}
+\code{\link{compareSpmCollection}},  \code{\link{getSigRegionsCompKC}}
 }
 \examples{
 data(hsSampleData)

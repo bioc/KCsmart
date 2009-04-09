@@ -51,7 +51,7 @@ Important note: the data can not contain any missing values. If your data includ
 \note{ 
 }
 \seealso{ 
-\code{\link{compareSpmCollection}},  \code{\link{getSigRegionsCompKC}}}
+\code{\link{compareSpmCollection}},  \code{\link{getSigRegionsCompKC}}
 }
 \examples{
 data(hsSampleData)
