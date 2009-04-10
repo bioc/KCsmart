@@ -60,15 +60,15 @@ write.table(x, file, append, quote, sep, eol, na, dec, row.names, col.names, qme
 }
 \details{
 Writes a summary of the sigSegments object to file. The resulting table contains 7 columns. The interpretation of the columns is as follows:
-  \begin{description}
-    \item[Status] Either 'L' for loss or 'G' for gain
-    \item[Chromosome] The chromosome on which this segment is located
-    \item[Start] The start position (in base pairs) of the segment on the chromosome
-    \item[End] The end position of the segment on the chromosome
-    \item[Average KC score] The average KCsmart score over all base pairs in this segment
-    \item[Mode KC score] The highest (for gains) or lowest (for losses) KCsmart score over all base pairs in this segment
-    \item[Probes] All probes from the original data that fall into this segment
-  \end{description}
+ \itemize{
+    \item{Status}{ Either 'L' for loss or 'G' for gain}
+    \item{Chromosome}{ The chromosome on which this segment is located}
+    \item{Start}{ The start position (in base pairs) of the segment on the chromosome}
+    \item{End}{ The end position of the segment on the chromosome}
+    \item{Average KC score}{The average KCsmart score over all base pairs in this segment}
+    \item{Mode KC score}{The highest (for gains) or lowest (for losses) KCsmart score over all base pairs in this} segment
+    \item{Probes}{ All probes from the original data that fall into this segment}
+  }
 }
 \value{
 
