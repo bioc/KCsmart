@@ -13,16 +13,16 @@
 In this Vignette we demonstrate the usage of the
 \texttt{KCsmart} R package. This R implementation is based on the original implementation coded in Matlab and first published in January 2008 [1]. 
 
-KC-SMART is a method for finding recurrent gains and losses from a set of tumor samples measured on an array Comparative Genome Hybridization (aCGH) platform. Instead of single tumor aberration calling, and subsequent minimal common region definition, KC-SMART takes an approach based on the continuous raw log2 values.
+KC-SMART is a method for finding recurrent gains and losses from a set of tumor samples measured on an array Comparative Genome Hybridization (aCGH) platform. Instead of single tumor aberration calling, and subsequent minimal common region definition, KC-SMART takes an approach based on the continuous raw log2 values
 
-Briefly: we apply Gaussian locally weighted regression to the summed totals positive and negative log2 ratios separately. This result is corrected for uneven probe spacing as present on the given array. Peaks in the resulting normalized KC score are tested against a randomly permuted background. Regions of significant, recurrent gains and losses are determined using the resulting, multiple testing corrected, significance threshold.
+Briefly: we apply Gaussian locally weighted regression to the summed totals positive and negative log2 ratios separately. This result is corrected for uneven probe spaceing as present on the given array. Peaks in the resulting normalized KC score are tested against a randomly permuted background. Regions of significant recurrent gains and losses are determined using the resulting, multiple testing corrected, significance threshold.
 
 \section{Basic Functionality}
 After installing the \texttt{KCsmart} package via Bioconductor, load the KCsmart code into R.
 <<>>=
 library(KCsmart)
 @
-Load some sample aCGH data. We supply an example dataset of an old 3000 probe BAC clone experiment. KC-SMART has no problem running on modern 300k+ probe datasets, but this dataset is supplied to keep the package size low. This dataset can be a simple dataframe, \texttt{DNAcopy} object or a \texttt{CGHbase} object, and can not contain any missing values. If the data contains missing values, we advise the user to either impute the missing values using the mean of the two neighboring probes or to discard probes containing missing values. 
+Load some sample aCGH data. We supply an example dataset of an old 3000 probe BAC clone experiment. KC-SMART has no problem running on modern 300k+ probe datasets, but this dataset is supplied to keep downloading times at a minimum. This dataset can be a simple dataframe, \texttt{DNAcopy} object or a \texttt{CGHbase} object, and not contain any missing values. If the data contains missing values, we advise the user to either impute the missing values using the mean of the two neighboring probes or to discard probes containing missing values. 
 <<>>=
 data(hsSampleData)
 @
@@ -32,7 +32,7 @@ str(hsSampleData)
 @
 The user can easily model their data in this format, basically only requiring a column named \texttt{\$chrom} containing the chromosome on which the probe is located and a column named \texttt{\$maploc} containing the chromosomal location of the probe. Alternatively, both \texttt{DNAcopy} and \texttt{CGHbase} objects can be used as direct input for the \texttt{calcSpm} function discussed below.
 
-KC-SMART uses mirroring of the probes at the ends of chromosomes and near centromeres to prevent signal decay by the convolution. The locations of the centromeres and the lengths of the chromosomes are therefore necessary information. Hard-coded information about the human and mouse genome is supplied, but the user can easily provide the coordinates themselves in R. The 'mirrorLocs' object is a list with vectors containing the start, centromere (optional) and end of each chromosome as the list elements. Additionally it should  contain an attribute 'chromNames' listing the chromosome names of each respective list element. The provided 'hsMirrorLocs' can serve as an example of such a list.
+KC-SMART uses mirroring of the probes at the ends of chromosomes and near centromeres to prevent signal decay by the convolution. The locations of the centromeres and the lengths of the chromosomes are therefore necessary information. Hard-coded information about the human and mouse genome is supplied, but the user can easily provide the coordinates themselves in R. The 'mirrorLocs' object is a list with vectors containing the start, centromere (optional) and end of each chromosome as the list elements. Additionally it should  contain an attribute 'chromNames' listing the chromosome names of each respective list element.
 
 To load the presupplied information use:
 <<>>=
@@ -43,12 +43,11 @@ For an analysis in mouse \texttt{data(mmMirrorLocs)} is used. Using the \texttt{
 spm1mb <- calcSpm(hsSampleData, hsMirrorLocs)
 spm4mb <- calcSpm(hsSampleData, hsMirrorLocs, sigma=4000000)
 @
-Now we plot the chromosome-wide view of the convolution for both the gains and the losses for the 1Mb kernelwidth analysis. Since the samplepoint matrix we just created is an S4 object we can just apply the plot command to it to visualize the results. To keep the size of the vignette down we use an interpolation of 10 here, resulting in every 10th point being plotted.
-
+Now we plot the chromosome-wide view of the convolution for both the gains and the losses for the 1Mb kernelwidth analysis. Since the samplepoint matrix we just created is an S4 object we can just apply the plot command to it to visualize the results.
 
 \begin{center}
 <<fig = TRUE>>=
-plot(spm1mb, interpolation=10)
+plot(spm1mb)
 @
 \end{center}
 
@@ -63,14 +62,14 @@ plot(spm1mb, chromosomes=c(1, 12, "X"), type="g")
 As can be seen, in this particular (synthetic) dataset chromosome 1 shows a large recurrent gain compared to other chromosomes. How significant is this gain? We can determine a significance level based on permutation to determine this. In this example we will permute the data 10 times and determine a threshold at $p < 0.05$. We recommend 1000 permutations if you want to do a definitive analysis of a dataset.
 
 <<>>=
-sigLevel1mb <- findSigLevelTrad(hsSampleData, spm1mb, n=3, p=0.05)
+sigLevel1mb <- findSigLevelTrad(hsSampleData, spm1mb, n=10, p=0.05)
 @
 
 We can now plot the significance level we just calculated in the genomewide view of the KCsmart result using the \texttt{sigLevels=} parameter of the \texttt{plot} function. This time, we'll use the \texttt{type=1} parameter. This will plot the gains and losses in a single frame.
 
 \begin{center}
 <<fig = TRUE>>=
-plot(spm1mb, sigLevels=sigLevel1mb, type=1, interpolation=10)
+plot(spm1mb, sigLevels=sigLevel1mb, type=1)
 @
 \end{center}
 
@@ -82,7 +81,7 @@ plot(spm1mb, chromosomes=c(1, 12, "X"), type="g", sigLevels=sigLevel1mb)
 @
 \end{center}
 
-We've also implemented a less stringently corrected version of the permutation algorithm that was shown above. This approach doesn't calculate the Bonferroni corrected significance level, but the False Discovery Rate (FDR). The command to find the FDR for this particular dataset would be \texttt{FDR1mb <- findSigLevelFdr(hsSampleData, spm1mb, n=10, fdrTarget = 0.05)}. In general the FDR is less conservative, and caution must be taken when using this as a threshold.
+We've also implemented a less stringently corrected version of the permutation algorithm that was shown above. This approach doesn't calculate the Bonferroni corrected significance level, but the False Discovery Rate (FDR). The command to find the FDR for this particular dataset would be \texttt{FDR1mb <- findSigLevelFdr(hsSampleData, spm1mb, n=10, fdrTarget = 0.05)}. In general the FDR is less conservative, and caution must be taken when using this as a threshold.kile
 
 Now we have our significance level we would like to get usable information back about which regions are found to be significantly abberrant and which probes of the original dataset are contained in these regions. Using the \texttt{getSigSegments} function we can input a samplepoint matrix and our calculated significance level to get back the relevant information.
 
@@ -109,10 +108,10 @@ Using \texttt{str(sig.regions.1mb)} you can find out more about the way the sign
 One of the powerful features of KC-SMART is the ability to perform multi-scale analysis. The algorithm can be run using different kernel widths, where small kernel widths will allow you to detect small regions of aberration and vice versa using large kernel widths large regions of aberration can be detected. Remember our convolution step? We calculated the convolution at two sigma's: 1Mb and 4Mb. We will now calculate a significance level for the 4Mb samplepoint matrix and plot the results of both kernelwidths in a scale space figure.
 
 <<>>=
-sigLevel4mb <- findSigLevelTrad(hsSampleData, spm4mb, n=3)
+sigLevel4mb <- findSigLevelTrad(hsSampleData, spm4mb, n=10)
 @
 
-Now you can plot the scalespace of the two different kernel widths using \texttt{plotScaleSpace(list(spm1mb, spm4mb), list(sigLevel1mb, sigLevel4mb))}. A scale space can show you small and large significant regions in one plot, as well as give you insight within a single significant region. Darker red means more significant. As an option you can plot either the gains or the losses or both. When plotting both, two x11 devices will be opened. Using the 'chromosomes' parameter the chromosomes to be plotted can be set.
+Now you can plot the scalespace of the two different kernel widths using \texttt{plotScaleSpace}. A scale space can show you small and large significant regions in one plot, as well as give you insight within a single significant region. Darker red means more significant. As an option you can plot either the gains or the losses or both. When plotting both, two x11 devices will be opened. Using the 'chromosomes' parameter the chromosomes to be plotted can be set.
 
 \begin{center}
 <<fig = TRUE>>=
@@ -120,6 +119,41 @@ plotScaleSpace(list(spm1mb, spm4mb), list(sigLevel1mb, sigLevel4mb), type='g')
 @
 \end{center}
 
+\section{Comparative KC-SMART}
+
+Using KC-SMART you can also find regions of significant different copy number change between two specific groups of samples. The resulting regions of significant difference are not required to be significantly recurrent in the entire tumor set. We employ kernel smoothing on a single tumor basis, followed by either a permutation based significance analysis using the signal to noise ratio of the sample point matrices or the use of the siggenes package to determine significance.
+
+The main function of the comparative version of KC-SMART is \texttt{calcSpmCollection}, this function requires the data to be in the same form as needed by \texttt{calcSpm}, but it also requires a class vector. This is a vector of ones and zeros, with as many elements as there are samples in the dataset. The ones denote one class, and the zeros the other.
+
+Our sample data contains an amplification on chromosome 4 that is specific to a subset of the samples, namely the last 10 samples. We will now calculate the significant difference between the first 10 samples and the last 10 samples in the example dataset using comparative KC-SMART
+
+First we'll want to calculate a sample point matrix collection, the starting point for a comparative analysis. The class vector we use is just 10 zeros followed by 10 ones. Note that this procedure can take a long time if you have a large dataset! Make sure you do it only once. If you have multiple subgroups within a dataset you can define alternative class vectors later in the analysis. You can perform this analysis again on different scales, here we use a sigma of 1 Mb.
+
+<<>>=
+spmc1mb <- calcSpmCollection(hsSampleData, hsMirrorLocs, cl=c(rep(0,10),rep(1,10)), sigma=1000000)
+@
+
+We get a few warnings that some sample points are listed as \texttt{NA}. These sample points are the mirrored sample points that fall outside the chromosome boundaries, so they will not be used in the analysis. The next step is to calculate the significance of the diffences between the subgroups. We use the \texttt{compareSpmCollection} command for this. Using a parameter called \texttt{method} we define the method to determine significance. The option \texttt{"perm"} will use class label permutation to define an empirical null-distribution against which the actual differences are measured. The \texttt{"siggenes"} option will utilise the siggenes package to determine the significance, this option is both faster and uses less memory. 
+
+<<>>=
+spmc1mb.sig <- compareSpmCollection(spmc1mb, nperms=3, method=c("siggenes"))
+spmc1mb.sig
+@
+
+Now we can use the \texttt{getSigRegionsCompKC} command to extract the significant regions from the original data \texttt{spmc1mb} using the significance information contained in \texttt{spmc1mb.sig}.
+
+<<>>=
+spmc1mb.sig.regions <- getSigRegionsCompKC(spmc1mb.sig)
+spmc1mb.sig.regions
+@
+
+The information contained in \texttt{spmc1mb.sig.regions} variable can be saved to disk using the \texttt{write.table} command if further processing in other programs is required. An overview of the comparative analysis can also be plotted using the \texttt{plot} function.
+
+\begin{center}
+<<fig = TRUE>>=
+plot(spmc1mb.sig, sigRegions=spmc1mb.sig.regions)
+@
+\end{center}
 
 \section{References}
 

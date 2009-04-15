@@ -104,7 +104,6 @@ setMethod("plot", signature(x="scaleSpace", y="missing"), function(x, y, spm, ty
 		axis(2,scale.spaces, at=seq(0.5,nrScales,by=1), las=1)
 	}
 })
-
 setMethod("plot", signature(x="compKc", y="missing"), function(x, sigRegions=NULL, type="1", chromosomes=NULL, colinAxis=NULL, maploc=NULL, interpolation=1, main=NULL, col1=NULL, col2=NULL, ylim=NULL, add=F, ...){
 	mirrorLocs <- x@spmCollection@mirrorLocs
 
@@ -118,20 +117,25 @@ setMethod("plot", signature(x="compKc", y="missing"), function(x, sigRegions=NUL
 		chromosomes <- 1:length(mirrorLocs)
 		colinAxis <- T
 	} else {
-		stop("Plotting selected chromosome not yet supported")
 		chromosomes <- sort(match(chromosomes, attr(mirrorLocs, 'chromNames')))
 	}
 
-	#check missing chr in data
+	#Get chromosome information
 	chromNames <- attr(mirrorLocs, 'chromNames')
 	chromLengths <- table(x@spmCollection@annotation@chromosome)
 	chromLengths <- chromLengths[chromNames]
 	chromSizes <- sapply(mirrorLocs, max)
 	names(chromSizes) <- attr(mirrorLocs, 'chromNames')
+	chromSizes <- chromSizes[chromNames]
+
+	#process the chromosomes we are going to plot
+	dataoffsets <- cumsum(c(0, chromLengths))
+
 	total <- sum(chromLengths[chromNames[chromosomes]])
 	totalbp <- sum(chromSizes[chromNames[chromosomes]])
-
 	sampDensity <- totalbp / total
+
+
 
 	#plot roMeans panel
 	ycl0 <- rowMeans(x@spmCollection@data[,x@spmCollection@cl==0], na.rm=T)
@@ -147,19 +151,20 @@ setMethod("plot", signature(x="compKc", y="missing"), function(x, sigRegions=NUL
 	xOffset <- 0
 	abline(v=xOffset,col='darkblue')
 	for(i in chromosomes){
+
 		chromosome <- chromNames[i]
 
 		#draw rectangle where if sigregions is provided
 		if(!is.null(sigRegions)) {
 			r <- sigRegions@regionTable[sigRegions@regionTable$chromosome == chromosome,]
 			if(nrow(r) >0)
-				rect(xleft=r$startrow, ybottom=ylim[1], xright=r$endrow, ytop=ylim[2], col="lightgray", border=NA)
+				rect(xleft=r$startrow-dataoffsets[i]+xOffset, ybottom=ylim[1], xright=r$endrow-dataoffsets[i]+xOffset, ytop=ylim[2], col="lightgray", border=NA)
 		}
 
 		#to avoid getting really large images the user can set an interpolation
 		plottingPoints <- seq(1,chromLengths[chromosome], by=interpolation)
-		lines(xOffset + plottingPoints, ycl0[plottingPoints+xOffset], type="l", col=col1)
-		lines(xOffset + plottingPoints, ycl1[plottingPoints+xOffset], type="l", col=col2)
+		lines(xOffset + plottingPoints, ycl0[plottingPoints+dataoffsets[i]], type="l", col=col1)
+		lines(xOffset + plottingPoints, ycl1[plottingPoints+dataoffsets[i]], type="l", col=col2)
 		
 		#if centromere is present, plot it
 		if(length(mirrorLocs[[i]]) == 3){
@@ -204,11 +209,11 @@ setMethod("plot", signature(x="compKc", y="missing"), function(x, sigRegions=NUL
 		if(!is.null(sigRegions)) {
 			r <- sigRegions@regionTable[sigRegions@regionTable$chromosome == chromosome,]
 			if(nrow(r) >0)
-				rect(xleft=r$startrow, ybottom=ylim[1], xright=r$endrow, ytop=ylim[2], col="lightgray", border=NA)
+				rect(xleft=r$startrow-dataoffsets[i]+xOffset, ybottom=ylim[1], xright=r$endrow-dataoffsets[i]+xOffset, ytop=ylim[2], col="lightgray", border=NA)
 		}
 		#to avoid getting really large images the user can set an interpolation
 		plottingPoints <- seq(1,chromLengths[chromosome], by=interpolation)
-		lines(xOffset + plottingPoints, ysnr[plottingPoints+xOffset], type="l", col=col1)
+		lines(xOffset + plottingPoints, ysnr[plottingPoints+dataoffsets[i]], type="l", col=col1)
 		
 		#if centromere is present, plot it
 		if(length(mirrorLocs[[i]]) == 3){

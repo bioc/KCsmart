@@ -19,6 +19,7 @@ License: \tab GPL\cr
 Use the wrapper function 'calcSpm' to calculate the sample point matrix. Use 'findSigLevelTrad' to find a significance threshold using permutation based testing.
 Use 'plot' to plot the sample point matrix or 'plotScaleSpace' to plot the significant regions over multiple scales (sigmas).
 Use 'getSigSegments' to retrieve the significantly gained and lost regions using specific cutoffs.
+To use the comparative version of KCsmart, use the 'calcSpmCollection', 'compareSpmCollection' and 'getSigRegionsCompKC' functions. See the documentation of those function for details on how to use these.
 }
 \author{
 Jorma de Ronde, Christiaan Klijn
@@ -52,4 +53,13 @@ plot(spm1mb, sig.level=siglevel1mb)
 plotScaleSpace(list(spm1mb, spm4mb), list(siglevel1mb, siglevel4mb), type='g')
 
 sigSegments1mb <- getSigSegments(spm1mb, siglevel1mb)
+
+
+spmc1mb <- calcSpmCollection(hsSampleData, hsMirrorLocs, cl=c(rep(0,10),rep(1,10)))
+spmcc1mb <- compareSpmCollection(spmc1mb, nperms=3)
+spmcc1mbSigRegions <- getSigRegionsCompKC(spmcc1mb)
+
+plot(spmcc1mb, sigRegions=spmcc1mbSigRegions)
+
+
 }
