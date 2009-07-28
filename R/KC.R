@@ -920,6 +920,9 @@ getSigRegionsCompKC <- function(compKc, fdr=.01, maxRegionGap=10) {
 		regions <- notsplit[order(notsplit$startrow),]
 		
 	}
+	regions$startrow <- as.numeric(regions$startrow)
+  regions$endrow <- as.numeric(regions$endrow)
+    
 	startposition <- compKc@spmCollection@annotation@maploc[regions$startrow]
 	endposition <- compKc@spmCollection@annotation@maploc[regions$endrow]
 
