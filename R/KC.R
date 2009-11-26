@@ -677,17 +677,20 @@ getSigSegments <- function(spm, sigLevels, chromosomes=NULL){
 		cprobes <- (spm@probeAnnotation@chromosome == i)
 		
 		#gains
-		sigGains <- which(spm[[i]]$pos >= sigLevels$pos)
+		sigGainsBool <- spm[[i]]$pos >= sigLevels$pos
+		sigGains <- which(sigGainsBool)
 		
 		if(length(sigGains) > 0){
 		
 		#now get chromosome region
-		t <- diff(sigGains)
-		t2 <- t - c(2,t[-c(length(t))])
-		t2[1] <- 1
-		t2[length(t2)] <- 1
-		t3 <- which(t2 != 0)
-		t <- t3
+		#t <- diff(sigGains)
+		#t2 <- t - c(2,t[-c(length(t))])
+		#t2[1] <- 1
+		#t2[length(t2)] <- 1
+		#t3 <- which(t2 != 0)
+		#t <- t3
+		
+		t <- .getPeaks(sigGainsBool)
 		
 		for(j in seq(1,(length(t) - 1), by=2)){
 			currentSegment <- vector(mode="list")
@@ -708,17 +711,12 @@ getSigSegments <- function(spm, sigLevels, chromosomes=NULL){
 		
 		
 		#losses
-		sigLosses <- which(spm[[i]]$neg <= sigLevels$neg)
+		sigLossesBool <- spm[[i]]$neg <= sigLevels$neg
+		sigLosses <- which(sigLossesBool)
 		
 		if(length(sigLosses) > 0){
 		
-		#now get chromosome region
-		t <- diff(sigLosses)
-		t2 <- t - c(2,t[-c(length(t))])
-		t2[1] <- 1
-		t2[length(t2)] <- 1
-		t3 <- which(t2 != 0)
-		t <- t3
+		t <- .getPeaks(sigLossesBool)
 		
 		#sigSegments[[i]]$negsegments <- vector(mode='list', length=length(t)/2)
 
@@ -731,8 +729,8 @@ getSigSegments <- function(spm, sigLevels, chromosomes=NULL){
 			currentSegment$y <- signif(spm[[i]]$neg[sigLosses[startPosition:end.position]], 4)
 			currentSegment$avgy <- signif(mean(currentSegment$y, na.rm=TRUE), 4)
 			currentSegment$modey <- signif(min(currentSegment$y, na.rm=TRUE), 4)
-			currentSegment$start <- (sigLosses[startPosition]) * sampleDensity
-			currentSegment$end <- (sigLosses[end.position]) * sampleDensity
+			currentSegment$start <- ((sigLosses[startPosition]) * sampleDensity) - sampleDensity
+			currentSegment$end <- ((sigLosses[end.position]) * sampleDensity) - sampleDensity
 			currentSegment$probes <- which((spm@probeAnnotation@maploc[cprobes] >= currentSegment$start) & (spm@probeAnnotation@maploc[cprobes] <= currentSegment$end))
 			currentSegment$probenames <- spm@probeAnnotation@name[cprobes][currentSegment$probes]
 			
@@ -744,6 +742,22 @@ getSigSegments <- function(spm, sigLevels, chromosomes=NULL){
 	sigSegments@sigma <- spm@sigma
 	sigSegments@sigLevels <- sigLevels
 	return(sigSegments)
+}
+
+
+.getPeaks <- 	function(x){
+		x[is.na(x)] <- F
+		trans_vec <- diff(x)
+		start_pos <- which(trans_vec == 1) + 1
+		end_pos <- which(trans_vec == -1)
+		
+		#fix for regions starting at first or ending at last position
+		if(x[1]){start_pos <- c(1, start_pos)}
+		if(x[length(x)]){end_pos <- c(end_pos, length(x))}
+		
+		peakIntervals <- as.vector(rbind(start_pos, end_pos))
+		
+		return(peakIntervals)		
 }
 
 
