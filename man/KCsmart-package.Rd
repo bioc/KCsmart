@@ -48,7 +48,7 @@ plot(spm1mb, chromosomes=c(1,5,6,'X'))
 siglevel1mb <- findSigLevelTrad(hsSampleData, spm1mb, n=3)
 siglevel4mb <- findSigLevelTrad(hsSampleData, spm4mb, n=3)
 
-plot(spm1mb, sig.level=siglevel1mb)
+plot(spm1mb, sigLevel=siglevel1mb)
 
 plotScaleSpace(list(spm1mb, spm4mb), list(siglevel1mb, siglevel4mb), type='g')
 
