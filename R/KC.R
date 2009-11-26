@@ -677,10 +677,9 @@ getSigSegments <- function(spm, sigLevels, chromosomes=NULL){
 		cprobes <- (spm@probeAnnotation@chromosome == i)
 		
 		#gains
-		sigGainsBool <- spm[[i]]$pos >= sigLevels$pos
-		sigGains <- which(sigGainsBool)
+		sigGains <- spm[[i]]$pos >= sigLevels$pos
 		
-		if(length(sigGains) > 0){
+		if(length(which(sigGains)) > 0){
 		
 		#now get chromosome region
 		#t <- diff(sigGains)
@@ -690,19 +689,19 @@ getSigSegments <- function(spm, sigLevels, chromosomes=NULL){
 		#t3 <- which(t2 != 0)
 		#t <- t3
 		
-		t <- .getPeaks(sigGainsBool)
+		t <- .getPeaks(sigGains)
 		
 		for(j in seq(1,(length(t) - 1), by=2)){
 			currentSegment <- vector(mode="list")
 			startPosition <- t[j]
 			end.position <- t[j+1]
 			currentSegment$chromosome <- i
-			currentSegment$x <- sigGains[startPosition:end.position]
-			currentSegment$y <- signif(spm[[i]]$pos[sigGains[startPosition:end.position]],4)
+			currentSegment$x <- startPosition:end.position
+			currentSegment$y <- signif(spm[[i]]$pos[startPosition:end.position],4)
 			currentSegment$avgy <- signif(mean(currentSegment$y, na.rm=TRUE), 4)
 			currentSegment$modey <- signif(max(currentSegment$y, na.rm=TRUE), 4)
-			currentSegment$start <- ((sigGains[startPosition]) * sampleDensity) - sampleDensity
-			currentSegment$end <- ((sigGains[end.position]) * sampleDensity) - sampleDensity
+			currentSegment$start <- (startPosition * sampleDensity) - sampleDensity
+			currentSegment$end <- (end.position * sampleDensity) - sampleDensity
 			currentSegment$probes <- which((spm@probeAnnotation@maploc[cprobes] >= currentSegment$start) & (spm@probeAnnotation@maploc[cprobes] <= currentSegment$end))
 			currentSegment$probenames <- spm@probeAnnotation@name[cprobes][currentSegment$probes]
 			sigSegments@gains <- c(sigSegments@gains, list(currentSegment))
@@ -711,12 +710,11 @@ getSigSegments <- function(spm, sigLevels, chromosomes=NULL){
 		
 		
 		#losses
-		sigLossesBool <- spm[[i]]$neg <= sigLevels$neg
-		sigLosses <- which(sigLossesBool)
+		sigLosses <- spm[[i]]$neg <= sigLevels$neg
 		
-		if(length(sigLosses) > 0){
+		if(length(which(sigLosses)) > 0){
 		
-		t <- .getPeaks(sigLossesBool)
+		t <- .getPeaks(sigLosses)
 		
 		#sigSegments[[i]]$negsegments <- vector(mode='list', length=length(t)/2)
 
@@ -725,12 +723,12 @@ getSigSegments <- function(spm, sigLevels, chromosomes=NULL){
 			startPosition <- t[j]
 			end.position <- t[j+1]
 			currentSegment$chromosome <- i
-			currentSegment$x <- sigLosses[startPosition:end.position]
-			currentSegment$y <- signif(spm[[i]]$neg[sigLosses[startPosition:end.position]], 4)
+			currentSegment$x <- startPosition:end.position
+			currentSegment$y <- signif(spm[[i]]$neg[startPosition:end.position], 4)
 			currentSegment$avgy <- signif(mean(currentSegment$y, na.rm=TRUE), 4)
 			currentSegment$modey <- signif(min(currentSegment$y, na.rm=TRUE), 4)
-			currentSegment$start <- ((sigLosses[startPosition]) * sampleDensity) - sampleDensity
-			currentSegment$end <- ((sigLosses[end.position]) * sampleDensity) - sampleDensity
+			currentSegment$start <- (startPosition * sampleDensity) - sampleDensity
+			currentSegment$end <- (end.position * sampleDensity) - sampleDensity
 			currentSegment$probes <- which((spm@probeAnnotation@maploc[cprobes] >= currentSegment$start) & (spm@probeAnnotation@maploc[cprobes] <= currentSegment$end))
 			currentSegment$probenames <- spm@probeAnnotation@name[cprobes][currentSegment$probes]
 			
