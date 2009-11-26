@@ -698,8 +698,8 @@ getSigSegments <- function(spm, sigLevels, chromosomes=NULL){
 			currentSegment$y <- signif(spm[[i]]$pos[sigGains[startPosition:end.position]],4)
 			currentSegment$avgy <- signif(mean(currentSegment$y, na.rm=TRUE), 4)
 			currentSegment$modey <- signif(max(currentSegment$y, na.rm=TRUE), 4)
-			currentSegment$start <- (sigGains[startPosition]) * sampleDensity
-			currentSegment$end <- (sigGains[end.position]) * sampleDensity
+			currentSegment$start <- ((sigGains[startPosition]) * sampleDensity) - sampleDensity
+			currentSegment$end <- ((sigGains[end.position]) * sampleDensity) - sampleDensity
 			currentSegment$probes <- which((spm@probeAnnotation@maploc[cprobes] >= currentSegment$start) & (spm@probeAnnotation@maploc[cprobes] <= currentSegment$end))
 			currentSegment$probenames <- spm@probeAnnotation@name[cprobes][currentSegment$probes]
 			sigSegments@gains <- c(sigSegments@gains, list(currentSegment))
