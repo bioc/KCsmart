@@ -10,7 +10,7 @@
 		chromIndex  <- which(chromNames == i)
 		if(length(chromIndex ) == 0){
 			chromIndex  = as.numeric(i)
-			warning(paste('Could not find chromosome',i,'in mirror locations object, using chromosome #', i, 'as an alternative'))
+			warning(paste('Could not find chromosome annotated as ',i,' (in dataset) in mirror locations object, using chromosome #', i, ' (annotated as ', chromNames[i], ' in mirror locations object) as an alternative'))
 		}
 		for(j in 1:length(mirrorLocs[[chromIndex ]])){
 			max.maploc <- max(data@probeAnnotation@maploc[data@probeAnnotation@chromosome == i])
@@ -381,7 +381,7 @@ findSigLevelTrad <- function(data, observedSpm, n=1, p=0.05, maxmem=1000){
 	cutoff.pos <- min(sort(peaks$pos, decreasing=TRUE)[1:(p.corrected.pos*length(peaks$pos))])
 	cutoff.neg <- max(sort(peaks$neg)[1:(p.corrected.neg*length(peaks$neg))])
 
-	print("\n")	
+	cat("\n")	
 	return(list(pos=cutoff.pos, neg=cutoff.neg))
 }
 
@@ -413,7 +413,7 @@ findSigLevelFdr <- function(data, observedSpm, n=1, fdrTarget=0.05, maxmem=1000)
 		finalCutoffPos <- KCsmart:::.findCutoffByFdr(observedSpmUnlisted$pos, totalSpmPermuted$pos, fdr=fdrTarget)
 		finalCutoffNeg <- -KCsmart:::.findCutoffByFdr(-observedSpmUnlisted$neg, -totalSpmPermuted$neg, fdr=fdrTarget)
 
-		print("\n")	
+		cat("\n")	
 		return(list(pos=finalCutoffPos,neg=finalCutoffNeg))
 }
 
