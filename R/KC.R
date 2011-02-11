@@ -46,15 +46,14 @@
 	return(mirrorLocs)
 }
 
-
 .mirrorData <- function(data, mirrorLocs, mirrorLength=1500000){
-
-       if(!is(data, "KcghDataSum")){stop("Need KcghDataSum object as input")}
+  
+  if(!is(data, "KcghDataSum")){stop("Need KcghDataSum object as input")}
 
 	cc <- new("KcghDataSum")
 	data <- new("KcghDataMirror", mirrorLocs, data)
 	data <- sort(data)
-	
+		
 	dataChromosomes <- unique(data@probeAnnotation@chromosome)
 	chromNames <- attr(mirrorLocs, 'chromNames')
 	
@@ -201,7 +200,6 @@
 	return(spmc)
 }
 
-
 .convertCGHbase <-function(cghBase){
 	#convert cghRaw to internal data representation
 	#get midpositions
@@ -212,9 +210,8 @@
 	return(KCGHdata)	
 }
 
-
 #wrapper functions
-calcSpm <- function(data, mirrorLocs, sigma=1000000, sampleDensity=50000, maxmem=1000, verbose=T){
+calcSpm <- function(data, mirrorLocs, sigma=1000000, sampleDensity=50000, maxmem=1000, verbose=T, old=F){
 
 	#do checks
 	#is it CGHbase data?
@@ -239,31 +236,43 @@ calcSpm <- function(data, mirrorLocs, sigma=1000000, sampleDensity=50000, maxmem
 	data <- KCsmart:::.mirrorData(data, mirrorLocs, mirrorLength)
 
 	print("Calculating sample point matrix ..")
-	spm <- KCsmart:::.samplePointMatrix(data, sampleDensity=sampleDensity, sigma=sigma, maxmem=maxmem, verbose=verbose)
+	# spm <- KCsmart:::.samplePointMatrix(data, sampleDensity=sampleDensity, sigma=sigma, maxmem=maxmem, verbose=verbose)
+  
+  if (!old) {
+    spm <- KCsmart:::.samplePointMatrix(data, sampleDensity=sampleDensity, sigma=sigma, maxmem=maxmem, verbose=verbose)
+  }
+  else {
+    spm <- KCsmart:::.samplePointMatrixOld(data, sampleDensity=sampleDensity, sigma=sigma, maxmem=maxmem, verbose=verbose)
+  }
+
 	rm(data)
 
 	print('Done')
 	return(spm)
 }
 
-calcSpmCollection <- function(data, mirrorLocs, cl=NULL, data2=NULL, sigma=1000000, sampleDensity=50000, maxmem=1000, verbose=F, doChecks=T){
+calcSpmCollection <- function(data, mirrorLocs, cl=NULL, data2=NULL, sigma=1000000, sampleDensity=50000, maxmem=1000, verbose=F, doChecks=T, old=F){
 
-	#do checks
-	#is it CGHbase data?
+  # Variables
+  if(is(data, "cghRaw")){
+    data <- KCsmart:::.convertCGHbase(data)
+  }
+
+  if(!is(data, "KcghData")){
+    data <- new("KcghData", data)
+  }
+  nrSamples <- ncol(data@data)
+  mirrorLength <- sigma * 4
+  
+  data <- new("KcghDataSplit", data)
+
+  
 	if(doChecks){
 	
 		if(is.null(data2) & is.null(cl)){
 			stop('Please provide a default class vector or a second data set')
 		}
 	
-		if(is(data, "cghRaw")){
-			data <- KCsmart:::.convertCGHbase(data)
-		}
-	
-		if(!is(data, "KcghData")){
-			data <- new("KcghData", data)
-		}
-		
 		#checks for 2nd data set
 		if(!is.null(data2)){
 			if(is(data2, "cghRaw")){
@@ -275,16 +284,14 @@ calcSpmCollection <- function(data, mirrorLocs, cl=NULL, data2=NULL, sigma=10000
 			}
 			if(!all.equal(data@probeAnnotation, data2@probeAnnotation)) {stop("The data has different annotations, unable to continue")}
 		}
-		
+    
+    if(!is.null(cl)){
+		if(sum(cl == 0 | cl == 1) != nrSamples) {stop('Invalid class vector given')}
+	}
+	
 		
 		mirrorLocs <- KCsmart:::.checkMirrorLocs(mirrorLocs, data)
 	}
-	
-	nrSamples <- ncol(data@data)
-	mirrorLength <- sigma * 4
-	
-	#print("Splitting data ..")
-	data <- new("KcghDataSplit", data)
 	
 	originalData <- data
 
@@ -304,7 +311,15 @@ calcSpmCollection <- function(data, mirrorLocs, cl=NULL, data2=NULL, sigma=10000
 		data <- KCsmart:::.mirrorData(data, mirrorLocs, mirrorLength)
 	
 		#cat(paste("Calculating sample point matrix ..","\r"))
-		spm <- KCsmart:::.samplePointMatrix(data, sampleDensity=sampleDensity, sigma=sigma, maxmem=maxmem, verbose=verbose)
+		# spm <- KCsmart:::.samplePointMatrix(data, sampleDensity=sampleDensity, sigma=sigma, maxmem=maxmem, verbose=verbose)
+    if (!old) {
+      spm <- KCsmart:::.samplePointMatrix(data, sampleDensity=sampleDensity, sigma=sigma, maxmem=maxmem, verbose=verbose)
+    }
+    else {
+      spm <- KCsmart:::.samplePointMatrixOld(data, sampleDensity=sampleDensity, sigma=sigma, maxmem=maxmem, verbose=verbose)
+    } 
+    
+    
 		rm(data)
 		
 		#cat(paste("Converting to spmc ..","\r"))
@@ -318,13 +333,6 @@ calcSpmCollection <- function(data, mirrorLocs, cl=NULL, data2=NULL, sigma=10000
 	
 	cat("\n")
 	
-	if(!is.null(cl)){
-		if(sum(cl == 0 | cl == 1) != nrSamples) {stop('Invalid class vector given')}
-		else{
-			spmc@cl <- cl
-		}
-	}
-	
 	if(!is.null(data2)){
 		spmc2 <- calcSpmCollection(data2, spmc@mirrorLocs, cl=cl, data2=NULL, sigma=sigma, sampleDensity=sampleDensity, maxmem=maxmem, verbose=verbose, doChecks=F)
 		nrSamplesFirstClass <- ncol(spmc@data)
@@ -333,10 +341,10 @@ calcSpmCollection <- function(data, mirrorLocs, cl=NULL, data2=NULL, sigma=10000
 		spmc@cl <- c(rep(0, nrSamplesFirstClass), rep(1, (ncol(spmc@data) - nrSamplesFirstClass)))
 	}
 	
+	spmc@cl <- cl
 	
-	return(spmc)
+  return(spmc)
 }
-
 
 #sig level
 findSigLevelTrad <- function(data, observedSpm, n=1, p=0.05, maxmem=1000){
@@ -349,8 +357,6 @@ findSigLevelTrad <- function(data, observedSpm, n=1, p=0.05, maxmem=1000){
 	sigma <- observedSpm@sigma
 	
 	peaks <- vector(mode="list")
-	
-	dataSplit <- new("KcghDataSplit", data)
 	
 	spmUnlisted <- unlist(observedSpm)
 		
@@ -365,12 +371,19 @@ findSigLevelTrad <- function(data, observedSpm, n=1, p=0.05, maxmem=1000){
 	mirrorLength <- sigma * 4
 	mirrorLocs <- observedSpm@mirrorLocs
 	
+	
+	print(paste('Calculating Mirror Positions'))
+  dataSplit <- new("KcghDataSplit", data)
+  dataSum <- new("KcghDataSum", dataSplit)
+  dataMirrored <- KCsmart:::.mirrorData(dataSum, mirrorLocs, mirrorLength)
+    
 	print('Starting permutations ..')
 	
 	for(i in 1:n){
 		cat(paste("\rAt iteration", i,'of',n))
 		
-		spmPermuted <- KCsmart:::.permutedSpm(dataSplit, mirrorLocs, mirrorLength, sampleDensity=sampleDensity, sigma=sigma, maxmem=maxmem)
+		# spmPermuted <- KCsmart:::.permutedSpm(dataSplit, mirrorLocs, mirrorLength, sampleDensity=sampleDensity, sigma=sigma, maxmem=maxmem)
+    spmPermuted <- KCsmart:::.permutedSpm(data, dataMirrored, sampleDensity=sampleDensity, sigma=sigma, maxmem=maxmem)
 		spmPermuted <- unlist(spmPermuted)
 
 		peaks$pos <- c(peaks$pos, KCsmart:::.findPeaks(spmPermuted$pos))
@@ -384,7 +397,6 @@ findSigLevelTrad <- function(data, observedSpm, n=1, p=0.05, maxmem=1000){
 	cat("\n")	
 	return(list(pos=cutoff.pos, neg=cutoff.neg))
 }
-
 
 findSigLevelFdr <- function(data, observedSpm, n=1, fdrTarget=0.05, maxmem=1000){
 		#FDR approach
@@ -400,11 +412,13 @@ findSigLevelFdr <- function(data, observedSpm, n=1, fdrTarget=0.05, maxmem=1000)
 		totalSpmPermuted <- vector(mode="list")
 		observedSpmUnlisted <- unlist(observedSpm)
 		dataSplit <- new("KcghDataSplit", data)
-		
+		dataSum <- new("KcghDataSum", dataSplit)
+    dataMirrored <- KCsmart:::.mirrorData(dataSum, mirrorLocs, mirrorLength)
+    
 		for(i in 1:n){
 			cat(paste("\rAt iteration", i,'of',n))
 		
-			spmPermuted <- KCsmart:::.permutedSpm(dataSplit, mirrorLocs, mirrorLength, sampleDensity=sampleDensity, sigma=sigma, maxmem=maxmem)
+			spmPermuted <-  KCsmart:::.permutedSpm(data, dataMirrored, sampleDensity=sampleDensity, sigma=sigma, maxmem=maxmem)
 			spmPermuted <- unlist(spmPermuted)
 			totalSpmPermuted$pos <- c(totalSpmPermuted$pos, spmPermuted$pos)
 			totalSpmPermuted$neg <- c(totalSpmPermuted$neg, spmPermuted$neg)
@@ -416,7 +430,6 @@ findSigLevelFdr <- function(data, observedSpm, n=1, fdrTarget=0.05, maxmem=1000)
 		cat("\n")	
 		return(list(pos=finalCutoffPos,neg=finalCutoffNeg))
 }
-
 
 .findPeaks_old <- function(data, mode='pos'){
 	data <- data[!is.na(data)]
@@ -454,9 +467,8 @@ findSigLevelFdr <- function(data, observedSpm, n=1, fdrTarget=0.05, maxmem=1000)
     dataOriginal[nonFlats][data2 == dir]
 }
 
-
 .findCutoffByFdr <- function(observed, permuted, fdr=0.05, precision=0.01){
-	#righ-tailed!!
+	#right-tailed!!
 	t.fdr <- 0
 	tCutoff <- max(observed, na.rm=TRUE)
 	tCutoffOld <- 0
@@ -497,26 +509,173 @@ findSigLevelFdr <- function(data, observedSpm, n=1, fdrTarget=0.05, maxmem=1000)
 	return(tCutoff)
 }
 
-
-.permutedSpm <- function(data, mirrorLocs, mirrorLength=sigma*4, sampleDensity=50000, sigma=1000000, maxmem=1000){
+.permutedSpm <- function(data, dataMirrored, sampleDensity=50000, sigma=1000000, maxmem=1000, old=F){
 	#takes sample data and returns sample point matrix of permuted probe label data
-	if(!is(data, "KcghDataSplit")){stop("Need KcghDataSplit as input")}
+	if(!is(data, "KcghData")){stop("Need KcghData as input")}
 	
 	#permute data
-	data@pos <- apply(data@pos, 2, function(x){return(sample(x))})
-	data@neg <- apply(data@neg, 2, function(x){return(sample(x))})
+  print('Permuting')
+  
+  for (i in 1:ncol(data@data)) {
+    data@data[,i] <- sample(data@data[,i])
+  }
+  
+  data <- new('KcghDataSplit', data)
+  dataSum <- new("KcghDataSum", data)
+  
+  virtIndex <- grep('virtual', dataMirrored@probeAnnotation@name)
+  realProbes <- dataMirrored@probeAnnotation[-virtIndex]
+  permMirrors <- new('KcghDataSum')
+  permMirrors@probeAnnotation <- dataMirrored@probeAnnotation[virtIndex]
+  permMirrors@pos <- sample(dataSum@pos, size=length(virtIndex))
+  permMirrors@neg <- sample(dataSum@neg, size=length(virtIndex))
+  permMirrors@nrSamples <- dataMirrored@nrSamples
+  
+  print('Combining')
+  combData <- new('KcghDataSum')
+  combData@probeAnnotation@chromosome <- 
+    c(permMirrors@probeAnnotation@chromosome, realProbes@chromosome)
+  combData@probeAnnotation@maploc <- 
+    c(permMirrors@probeAnnotation@maploc, realProbes@maploc)
+  combData@probeAnnotation@name <- 
+    c(permMirrors@probeAnnotation@name, realProbes@name)
+  combData@pos <- c(permMirrors@pos, dataSum@pos)
+  combData@neg <- c(permMirrors@neg, dataSum@neg)
+  combData@nrSamples <- dataMirrored@nrSamples
 
-	dataSum <- new("KcghDataSum", data)
-	dataMirrored <- KCsmart:::.mirrorData(dataSum, mirrorLocs, mirrorLength)
-
+  ordering <- order(combData@probeAnnotation@chromosome, combData@probeAnnotation@maploc)
+  combData@probeAnnotation@chromosome <- combData@probeAnnotation@chromosome[ordering]
+  combData@probeAnnotation@maploc <- combData@probeAnnotation@maploc[ordering]
+  combData@probeAnnotation@name <- combData@probeAnnotation@name[ordering]
+  combData@pos <- combData@pos[ordering]
+  combData@neg <- combData@neg[ordering]
+  
+  combData <- new("KcghDataMirror", dataMirrored@mirrorLocs, combData)
+  
+  print('Returning')
 	#get sample point matrix
-	spmPermuted <- KCsmart:::.samplePointMatrix(dataMirrored, sampleDensity, sigma, maxmem=maxmem, verbose=FALSE)
+	# spmPermuted <- KCsmart:::.samplePointMatrix(dataMirrored, sampleDensity, sigma, maxmem=maxmem, verbose=FALSE)
+  if (!old) {
+    spmPermuted <- .samplePointMatrix(combData, sampleDensity, sigma, maxmem=maxmem, verbose=FALSE)
+  }
+  else {
+    spmPermuted <- KCsmart:::.samplePointMatrixOld(combData, sampleDensity, sigma, maxmem=maxmem, verbose=FALSE)
+  } 
 	
 	return(spmPermuted)
 }
 
-
 .samplePointMatrix <- function(data, sampleDensity=50000,sigma=1000000, mirrorLocs=data@mirrorLocs, maxmem=1000, verbose=TRUE){
+  
+  #library(KernSmooth)
+        
+  if(!is(data, "KcghDataSum")){stop("Need KcghDataSum object as input")}
+	
+	cl <- unlist(lapply(mirrorLocs, max))
+	attr(cl, 'chromNames') <- attr(mirrorLocs, 'chromNames')
+	
+	spm <- new("samplePointMatrix")
+	sigma.4 <- sigma * 4
+	nrsamples <- data@nrSamples
+	dataChromosomes <- unique(data@probeAnnotation@chromosome)
+	chromNames <- attr(cl, 'chromNames')
+	
+	for(i in dataChromosomes){
+		if(verbose){cat(paste("\nProcessing chromosome", i,"\n"))}
+		
+		chromIndex  <- which(chromNames == i)
+		if(length(chromIndex ) == 0){
+			chromIndex  = as.numeric(i)
+			warning(paste('Could not find chromosome',i,'in mirror locations object'))
+		}
+		
+		all.cprobes <- which(data@probeAnnotation@chromosome == i)
+		
+    real.first.probe <- grep('first', data@probeAnnotation@name[all.cprobes])
+		real.last.probe <- grep('last', data@probeAnnotation@name[all.cprobes])
+    
+    chromSamplePoints <- length(1:(cl[chromIndex]/sampleDensity))
+    xval <- data@probeAnnotation@maploc[all.cprobes]
+    
+    # The kernel regression is performed here. The KernSmooth packages function
+    # locpoly is used. This is a local approximation method.
+    # Therefore we use the bkde, a kernel density estimation, on the probe spacing
+    # we set areas with very low probe coverage to NA, as the local approximation
+    # can cause artifacts to occur in the final result, if the local probe density
+    # aproaches 0. The location of the NA's in the final spm is one of the big
+    # differences in with the old function and may be the cause for differences
+    # in results when using the new version of KCsmart
+    #
+    # The other difference is that due to the approximation using a Fourier Transform
+    # the exact x-coordinates of the sampling grid might be different.
+    
+    tempPos <- locpoly(x=xval,
+      y=data@pos[all.cprobes], 
+      gridsize=chromSamplePoints, 
+      bandwidth=sigma, range.x=c(0, cl[chromIndex]))
+
+    tempNeg <- locpoly(x=xval,
+      y=data@neg[all.cprobes], 
+      gridsize=chromSamplePoints,
+      bandwidth=sigma, range.x=c(0, cl[chromIndex]))
+    
+    tempNorm <- bkde(x=as.numeric(xval), kernel = "normal", bandwidth=as.numeric(sigma),
+      gridsize = chromSamplePoints, range.x=c(0, cl[chromIndex]))
+    # Scale tempNorm between 1 and 0 
+    tempNorm$y <- tempNorm$y/max(tempNorm$y)
+    
+    # Any probe density .05 from the 0 line too sparse, so set to NA
+    # So this is basically the nastiest hard coded piece in the code. It can result in some data
+    # being set to all NA is there is some flukey massively high density probe region, which
+    # results in all the other areas to be less than 5% as dense as the max dense region.
+    # for now, I have no good ideas how to set this threshold any better -- but we need to filter
+    # out low density areas to prevent weird artifact causing non-existant peaks in the data.
+    tempNeg$y[tempNorm$y < .05] <- NA
+    tempPos$y[tempNorm$y < .05] <- NA
+    
+    # Set virtual probes to NA
+    
+    virtProbes <- (tempPos$x < data@probeAnnotation@maploc[real.first.probe]) | 
+      (tempPos$x > data@probeAnnotation@maploc[real.last.probe])
+    tempPos$y[virtProbes] <- NA
+    tempNeg$y[virtProbes] <- NA
+    
+    spm[[i]] <- list(pos = tempPos$y/nrsamples, neg = tempNeg$y/nrsamples)
+    attr(spm[[i]], 'chromosome') <- chromIndex 
+ 
+	}
+	
+	total <- 0
+	maxy <- 0
+	miny <- 0
+
+	for(i in 1:length(spm@data)){
+		total <- total + length(spm[[i]]$pos)
+		if(max(spm[[i]]$pos, na.rm=TRUE) > maxy){
+			maxy <- max(spm[[i]]$pos, na.rm=TRUE)
+		}
+		if(min(spm[[i]]$neg, na.rm=TRUE) < miny){
+			miny <- min(spm[[i]]$neg, na.rm=TRUE)
+		}
+	}
+	
+	spm@totalLength <- as.integer(total)
+	spm@maxy <- maxy
+	spm@miny <- miny
+	spm@sampleDensity <- as.integer(sampleDensity)
+	spm@sigma <- as.integer(sigma)
+	spm@mirrorLocs <- data@mirrorLocs
+
+	#attach probeAnnotation to spm, less the virtual probes
+	virtualProbes <- grep("virtual", data@probeAnnotation@name)
+	spm@probeAnnotation <- data@probeAnnotation[-virtualProbes]
+	
+	if(verbose){cat("\n\n")}
+	
+	return(spm)
+}
+
+.samplePointMatrixOld <- function(data, sampleDensity=50000,sigma=1000000, mirrorLocs=data@mirrorLocs, maxmem=1000, verbose=TRUE){
         if(!is(data, "KcghDataSum")){stop("Need KcghDataSum object as input")}
 	
 	cl <- unlist(lapply(mirrorLocs, max))
@@ -651,7 +810,6 @@ findSigLevelFdr <- function(data, observedSpm, n=1, fdrTarget=0.05, maxmem=1000)
 	return(spm)
 }
 
-
 getSigSegments <- function(spm, sigLevels, chromosomes=NULL){
     if(!is(spm, "samplePointMatrix")){stop("Need samplePointMatrix object as input")}
     
@@ -742,7 +900,6 @@ getSigSegments <- function(spm, sigLevels, chromosomes=NULL){
 	return(sigSegments)
 }
 
-
 .getPeaks <- 	function(x){
 		x[is.na(x)] <- F
 		trans_vec <- diff(x)
@@ -757,7 +914,6 @@ getSigSegments <- function(spm, sigLevels, chromosomes=NULL){
 		
 		return(peakIntervals)		
 }
-
 
 .getSigRegions <- function(spm, sigLevels, chromosomes=NULL){
 	sigRegions <- new("sigRegions")
@@ -807,7 +963,6 @@ plotScaleSpace <- function(spms, sigLevels, chromosomes=NULL, type='b'){
 	#plot sig regions, pass any spm as argument
 	plot(scaleSpace, spm=spms[[1]], type=type)
 }
-
 
 idPoints <- function(spm, mode='pos', dev=2, chromosomes=NULL){
 	options(locatorBell = FALSE)
@@ -1059,7 +1214,6 @@ getSigRegionsCompKC <- function(compKc, fdr=.01, maxRegionGap=10) {
 	}
 	return (sr[p])
 }
-
 
 .getRegions <- function(v, allowedGapsize=10) {
 		ss <- c(0,v) - c(v,0)

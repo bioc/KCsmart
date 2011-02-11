@@ -6,7 +6,7 @@
   Wrapper function that calculates the sample point matrix collection from the aCGH data. The sample point matrix collection is used in the comparative version of KCsmart.
 }
 \usage{
-calcSpmCollection(data, mirrorLocs, cl=NULL, data2=NULL, sigma=1000000, sampleDensity=50000, maxmem=1000, verbose=F, doChecks=T)
+calcSpmCollection(data, mirrorLocs, cl=NULL, data2=NULL, sigma=1000000, sampleDensity=50000, maxmem=1000, verbose=F, doChecks=T, old=F)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -19,6 +19,7 @@ calcSpmCollection(data, mirrorLocs, cl=NULL, data2=NULL, sigma=1000000, sampleDe
   \item{maxmem}{ This parameter controls memory usage, set to lower value to lower memory consumption }
   \item{verbose}{ If set to false, no progress information is displayed }
   \item{doChecks}{ If set to false, the data will not be checked for consistency }
+  \item{old}{ If set to true the old implementation of KCsmart will be used to calculate the spm }
 }
 \details{
   The input can either consist of a single data set and a class vector or two separate datasets. In the latter case a class vector will be created assigning each data set to its own class.
@@ -34,6 +35,8 @@ Important note: the data can not contain any missing values. If your data includ
   'sigma' defines the kernel width of the kernel used to convolute the data.
   
   'sampleDensity' defines the resolution of the sample point matrix to be calculated. A sampleDensity of 50000 would correspond to a sample point every 50k base pairs.
+  
+  'old' can be used if you want to reproduce data that was generated with old (pre 2.9.0) versions of KCsmart, for any new analyses we recommend this flag to be set to false
   
 }
 \value{

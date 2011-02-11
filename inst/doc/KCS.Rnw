@@ -136,7 +136,7 @@ spmc1mb <- calcSpmCollection(hsSampleData, hsMirrorLocs, cl=c(rep(0,10),rep(1,10
 We get a few warnings that some sample points are listed as \texttt{NA}. These sample points are the mirrored sample points that fall outside the chromosome boundaries, so they will not be used in the analysis. The next step is to calculate the significance of the diffences between the subgroups. We use the \texttt{compareSpmCollection} command for this. Using a parameter called \texttt{method} we define the method to determine significance. The option \texttt{"perm"} will use class label permutation to define an empirical null-distribution against which the actual differences are measured. The \texttt{"siggenes"} option will utilise the siggenes package to determine the significance, this option is both faster and uses less memory. 
 
 <<>>=
-spmc1mb.sig <- compareSpmCollection(spmc1mb, nperms=3, method=c"siggenes")
+spmc1mb.sig <- compareSpmCollection(spmc1mb, nperms=3, method=c("siggenes"))
 spmc1mb.sig
 @
 
