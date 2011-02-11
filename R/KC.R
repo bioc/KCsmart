@@ -635,8 +635,8 @@ findSigLevelFdr <- function(data, observedSpm, n=1, fdrTarget=0.05, maxmem=1000)
     
     # Set virtual probes to NA
     
-    virtProbes <- (tempPos$x < data@probeAnnotation@maploc[real.first.probe]) | 
-      (tempPos$x > data@probeAnnotation@maploc[real.last.probe])
+    virtProbes <- (tempPos$x < data@probeAnnotation@maploc[all.cprobes][real.first.probe]) | 
+      (tempPos$x > data@probeAnnotation@maploc[all.cprobes][real.last.probe])
     tempPos$y[virtProbes] <- NA
     tempNeg$y[virtProbes] <- NA
     
