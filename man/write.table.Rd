@@ -10,7 +10,9 @@
 Write summary of the significant regions to a table
 }
 \usage{
-write.table(x, file, append, quote, sep, eol, na, dec, row.names, col.names, qmethod)
+write.table(x, file = "", append = FALSE, quote = TRUE, sep = " ",
+                 eol = "\n", na = "NA", dec = ".", row.names = TRUE,
+                 col.names = TRUE, qmethod = c("escape", "double"))
 \S4method{write.table}{sigSegments}(x, file="", append = FALSE, quote = 7, sep = "\t", eol = "\n", na = "NA", dec = ".", row.names = TRUE, col.names=c("Status", "Chromosome", "Start", "End", "Average KC score", "Mode KC score", "Probes"), qmethod = c("escape", "double"))
 \S4method{write.table}{compKcSigRegions}(x, file="", append = FALSE, quote = 7, sep = "\t", eol = "\n", na = "NA", dec = ".", row.names = FALSE, col.names=c("startrow", "endrow", "chromosome", "startposition", "endposition"), qmethod = c("escape", "double"))
 }
