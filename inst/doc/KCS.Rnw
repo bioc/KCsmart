@@ -13,7 +13,7 @@
 In this Vignette we demonstrate the usage of the
 \texttt{KCsmart} R package. This R implementation is based on the original implementation coded in Matlab and first published in January 2008 [1]. 
 
-KC-SMART is a method for finding recurrent gains and losses from a set of tumor samples measured on an array Comparative Genome Hybridization (aCGH) platform. Instead of single tumor aberration calling, and subsequent minimal common region definition, KC-SMART takes an approach based on the continuous raw log2 values
+KC-Sor finding recurrent gains and losses from a set of tumor samples measured on an array Comparative Genome Hybridization (aCGH) platform. Instead of single tumor aberration calling, and subsequent minimal common region definition, KC-SMART takes an approach based on the continuous raw log2 values
 
 Briefly: we apply Gaussian locally weighted regression to the summed totals positive and negative log2 ratios separately. This result is corrected for uneven probe spaceing as present on the given array. Peaks in the resulting normalized KC score are tested against a randomly permuted background. Regions of significant recurrent gains and losses are determined using the resulting, multiple testing corrected, significance threshold.
 
@@ -52,24 +52,23 @@ plot(spm1mb)
 \end{center}
 
 It is possible to select only particular chromosomes in the plot command, and to only display the gains or only the losses. We will now visualize the KCsmart output for gains of chromosomes 1, 12 and X.
-
-\begin{center}
+<<<<<<<<<<<<>>>>>>>>>>>>>
 <<fig = TRUE>>=
 plot(spm1mb, chromosomes=c(1, 12, "X"), type="g")
 @
 \end{center}
 
-As can be seen, in this particular (synthetic) dataset chromosome 1 shows a large recurrent gain compared to other chromosomes. How significant is this gain? We can determine a significance level based on permutation to determine this. In this example we will permute the data 10 times and determine a threshold at $p < 0.05$. We recommend 1000 permutations if you want to do a definitive analysis of a dataset.
+As can be seen, in this particular (synthetic) dataset chromosome 1 shows a large recurrent gain compared to other chromosomes. How significant is this gain? We can determine a significance level based on permutation to determine this. In this example we will permute the data 10 times and determine a threshold at $p < 0.05$. We recommend 1000 permutations if you want to do a definitive analysis of a dataset. Since our dataset is quite low resolution we will use the 4Mb kernel size.
 
 <<>>=
-sigLevel1mb <- findSigLevelTrad(hsSampleData, spm1mb, n=10, p=0.05)
+sigLevel4mb <- findSigLevelTrad(hsSampleData, spm4mb, n=10, p=0.05)
 @
 
 We can now plot the significance level we just calculated in the genomewide view of the KCsmart result using the \texttt{sigLevels=} parameter of the \texttt{plot} function. This time, we'll use the \texttt{type=1} parameter. This will plot the gains and losses in a single frame.
 
 \begin{center}
 <<fig = TRUE>>=
-plot(spm1mb, sigLevels=sigLevel1mb, type=1)
+plot(spm4mb, sigLevels=sigLevel4mb, type=1)
 @
 \end{center}
 
@@ -77,7 +76,7 @@ Let's take a closer look at the gains of chromosome 1, 12 and X again, now with 
 
 \begin{center}
 <<fig = TRUE>>=
-plot(spm1mb, chromosomes=c(1, 12, "X"), type="g", sigLevels=sigLevel1mb)
+plot(spm4mb, chromosomes=c(1, 12, "X"), type="g", sigLevels=sigLevel4mb)
 @
 \end{center}
 
@@ -86,29 +85,29 @@ We've also implemented a less stringently corrected version of the permutation a
 Now we have our significance level we would like to get usable information back about which regions are found to be significantly abberrant and which probes of the original dataset are contained in these regions. Using the \texttt{getSigSegments} function we can input a samplepoint matrix and our calculated significance level to get back the relevant information.
 
 <<>>=
-sigRegions1mb <- getSigSegments(spm1mb,sigLevel1mb)
+sigRegions4mb <- getSigSegments(spm4mb,sigLevel4mb)
 @
 
 Now let's have a look at the information contained in \texttt{sigRegions1mb}, it is again an S4 object and will display its contents if you just type its name.
 
 <<>>=
-sigRegions1mb
+sigRegions4mb
 @
 
 You could write the infomation contained in \texttt{sigRegions1mb} to a file using \texttt{write.table(sigRegions1mb, file='sig.txt')}. You can also access the information in R using subsetting. For example, if you wanted to find the probe-names of the probes contained in the first significantly gained region you can get them like this:
 
 <<>>=
-sigRegions1mb@gains[[1]]$probes
+sigRegions4mb@gains[[1]]$probes
 @
 
 Using \texttt{str(sig.regions.1mb)} you can find out more about the way the significant regions are stored in the sigRegions object.
 
 \section{Multi-scale analysis}
 
-One of the powerful features of KC-SMART is the ability to perform multi-scale analysis. The algorithm can be run using different kernel widths, where small kernel widths will allow you to detect small regions of aberration and vice versa using large kernel widths large regions of aberration can be detected. Remember our convolution step? We calculated the convolution at two sigma's: 1Mb and 4Mb. We will now calculate a significance level for the 4Mb samplepoint matrix and plot the results of both kernelwidths in a scale space figure.
+One of the powerful features of KC-SMART is the ability to perform multi-scale analysis. The algorithm can be run using different kernel widths, where small kernel widths will allow you to detect small regions of aberration and vice versa using large kernel widths large regions of aberration can be detected. Remember our convolution step? We calculated the convolution at two sigma's: 1Mb and 4Mb. We will now calculate a significance level for the 1Mb samplepoint matrix and plot the results of both kernelwidths in a scale space figure.
 
 <<>>=
-sigLevel4mb <- findSigLevelTrad(hsSampleData, spm4mb, n=10)
+sigLevel1mb <- findSigLevelTrad(hsSampleData, spm1mb, n=10)
 @
 
 Now you can plot the scalespace of the two different kernel widths using \texttt{plotScaleSpace}. A scale space can show you small and large significant regions in one plot, as well as give you insight within a single significant region. Darker red means more significant. As an option you can plot either the gains or the losses or both. When plotting both, two x11 devices will be opened. Using the 'chromosomes' parameter the chromosomes to be plotted can be set.
