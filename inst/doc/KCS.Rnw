@@ -158,6 +158,8 @@ plot(spmc1mb.sig, sigRegions=spmc1mb.sig.regions)
 
 1. Klijn \emph{et. al.} Identification of cancer genes using a statistical framework for multiexperiment analysis of nondiscretized array CGH data. \emph{Nucleic Acids Research}. \textbf{36} No. 2, e13.
 
+2. de Ronde \emph{et. al.} KC-SMARTR: An R package for detection of statistically significant aberrations in multi-experiment aCGH data. \emph{BMC Research Notes}. \textbf{11} No. 3, 298.
+
 \end{document}
 
 
