@@ -52,7 +52,7 @@ plot(spm1mb)
 \end{center}
 
 It is possible to select only particular chromosomes in the plot command, and to only display the gains or only the losses. We will now visualize the KCsmart output for gains of chromosomes 1, 12 and X.
-<<<<<<<<<<<<>>>>>>>>>>>>>
+\begin{center}
 <<fig = TRUE>>=
 plot(spm1mb, chromosomes=c(1, 12, "X"), type="g")
 @
