@@ -12,7 +12,7 @@ Write summary of the significant regions to a table
 \usage{
 write.table(x, file = "", append = FALSE, quote = TRUE, sep = " ",
                  eol = "\n", na = "NA", dec = ".", row.names = TRUE,
-                 col.names = TRUE, qmethod = c("escape", "double"))
+                 col.names = TRUE, qmethod = c("escape", "double"), fileEncoding = "")
 \S4method{write.table}{sigSegments}(x, file="", append = FALSE, quote = 7, sep = "\t", eol = "\n", na = "NA", dec = ".", row.names = TRUE, col.names=c("Status", "Chromosome", "Start", "End", "Average KC score", "Mode KC score", "Probes"), qmethod = c("escape", "double"))
 \S4method{write.table}{compKcSigRegions}(x, file="", append = FALSE, quote = 7, sep = "\t", eol = "\n", na = "NA", dec = ".", row.names = FALSE, col.names=c("startrow", "endrow", "chromosome", "startposition", "endposition"), qmethod = c("escape", "double"))
 }
@@ -57,6 +57,10 @@ write.table(x, file = "", append = FALSE, quote = TRUE, sep = " ",
           '"escape"' (default), in which case the quote character is
           escaped in C style by a backslash, or '"double"', in which
           case it is doubled.  You can specify just the initial letter.}
+    
+    \item{fileEncoding}{character string: if non-empty declares the
+          encoding to be used on a file (not a connection) so the character data can
+          be re-encoded as they are written.  See \code{\link{file}}.}
 
 
 }
