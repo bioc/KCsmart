@@ -286,7 +286,7 @@ calcSpmCollection <- function(data, mirrorLocs, cl=NULL, data2=NULL, sigma=10000
 		}
     
     if(!is.null(cl)){
-		if(sum(cl == 0 | cl == 1) != nrSamples) {stop('Invalid class vector given')}
+      if(sum(cl == 0 | cl == 1) != nrSamples) {stop('Invalid class vector given')}
 	}
 	
 		
@@ -341,7 +341,9 @@ calcSpmCollection <- function(data, mirrorLocs, cl=NULL, data2=NULL, sigma=10000
 		spmc@cl <- c(rep(0, nrSamplesFirstClass), rep(1, (ncol(spmc@data) - nrSamplesFirstClass)))
 	}
 	
-	spmc@cl <- cl
+  if(!is.null(cl)){
+    spmc@cl <- cl
+  }
 	
   return(spmc)
 }
