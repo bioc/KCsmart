@@ -1,4 +1,4 @@
-importFrom(multtest, plot)
+importMethodsFrom(multtest, plot, summary)
 importFrom(utils, write.table)
 exportClasses(samplePointMatrix, sigSegments, spmCollection, compKc, compKcSigRegions)
 exportMethods(plot, write.table, initialize, show, "[[", "[", "[[<-")

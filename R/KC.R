@@ -1048,7 +1048,7 @@ getSigRegionsCompKC <- function(compKc, fdr=.01, maxRegionGap=10) {
 		deltas <- findDelta(a,fdr=fdr)
 		sink()
 		siglist$cutoff <- ifelse(is.matrix(deltas), deltas[2,1], deltas[1])
-		siggeneslist <- multtest:::summary(a, siglist$cutoff)
+		siggeneslist <- summary(a, siglist$cutoff)
 		siglist$issignificant <- 1:nrow(compKc@spmCollection@data) %in% siggeneslist@mat.sig$Row
 	}
 	else {
