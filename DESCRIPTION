@@ -11,4 +11,4 @@ Depends: methods, siggenes, multtest, KernSmooth
 Enhances: Biobase, CGHbase
 Collate: 'AllClasses.R' 'access-methods.R' 'length-methods.R' 'plot-methods.R' 'show-methods.R' 'sort-methods.R' 'unlist-methods.R' 'write.table-methods.R' 'KC.R'
 LazyLoad: yes
-biocViews: DNACopyNumber, Visualization, aCGH, Microarray
+biocViews: CopyNumberVariants, Visualization, aCGH, Microarray
