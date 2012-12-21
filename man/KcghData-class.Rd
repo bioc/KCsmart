@@ -2,7 +2,7 @@
 \docType{class}
 \alias{KcghData-class}
 \alias{initialize,KcghData-method}
-\alias{sort,KcghData,missing-method}
+\alias{sort,KcghData-method}
 
 \title{Class "KcghData" }
 \description{Internal class}
@@ -17,7 +17,7 @@
 \section{Methods}{
   \describe{
     \item{initialize}{\code{signature(.Object = "KcghData")}: Internal use only }
-    \item{sort}{\code{signature(x = "KcghData", decreasing = "missing")}: Internal use only }
+    \item{sort}{\code{signature(x = "KcghData")}: Internal use only }
 	 }
 }
 

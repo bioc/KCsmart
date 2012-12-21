@@ -26,8 +26,7 @@ getSigSegments(spm, sigLevels, chromosomes=NULL)
 }
 \references{ ~put references to the literature/web site here ~ }
 \author{ Jorma de Ronde }
-\note{
-}
+
 \seealso{  \code{\link{findSigLevelTrad}},  \code{\link{findSigLevelTrad}}, \code{\link{write.table}}}
 \examples{
 data(hsSampleData)

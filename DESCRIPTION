@@ -1,13 +1,14 @@
 Package: KCsmart
 Type: Package
 Title: Multi sample aCGH analysis package using kernel convolution
-Version: 2.17.0
+Version: 2.17.1
 Date: 2009-11-26
 Author: Jorma de Ronde, Christiaan Klijn, Arno Velds
 Maintainer: Jorma de Ronde <j.d.ronde@nki.nl>
 Description: Multi sample aCGH analysis package using kernel convolution
 License: GPL-3
-Depends: methods, siggenes, multtest, KernSmooth
+Depends: siggenes, multtest, KernSmooth
+Imports: methods, BiocGenerics
 Enhances: Biobase, CGHbase
 Collate: 'AllClasses.R' 'access-methods.R' 'length-methods.R' 'plot-methods.R' 'show-methods.R' 'sort-methods.R' 'unlist-methods.R' 'write.table-methods.R' 'KC.R'
 LazyLoad: yes

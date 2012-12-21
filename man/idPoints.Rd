@@ -26,8 +26,7 @@ idPoints(spm, mode='pos', dev=2, chromosomes=NULL)
     \item{colin}{Co-linear location of the identified point (given the selected chromosomes)}
 }
 \author{ Jorma de Ronde }
-\note{ 
-}
+
 \seealso{ \code{\link{plot}} }
 \examples{
 data(hsSampleData)

@@ -25,10 +25,9 @@ getSigRegionsCompKC(compKc, fdr=.01, maxRegionGap=10)
  The method used to determine the cutoff, the fdr and the cutoff itself are stored in their corresponding slots.
  Use 'plot' to visualize the results.
 }
-\references{ }
+
 \author{ Jorma de Ronde }
-\note{ 
-}
+
 \seealso{ 
 \code{\link{compareSpmCollection}},  \code{\link{getSigRegionsCompKC}}
 }

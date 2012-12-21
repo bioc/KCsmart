@@ -49,10 +49,9 @@ Important note: the data can not contain any missing values. If your data includ
   
   Use 'compareSpmCollection' to get a 'compKc' object for which the significant regions can be calculated using 'getSigRegionsCompKC'.
 }
-\references{ }
+
 \author{ Jorma de Ronde }
-\note{ 
-}
+
 \seealso{ 
 \code{\link{compareSpmCollection}},  \code{\link{getSigRegionsCompKC}}
 }

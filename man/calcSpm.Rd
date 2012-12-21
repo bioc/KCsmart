@@ -47,10 +47,9 @@ Important note: the data can not contain any missing values. If your data includ
   Use 'plot' to plot the sample point matrix and 'findSigLevelTrad' to find a significance threshold.
   'plotScaleSpace' can be used to plot the significant regions of multiple sample point matrices (using different sigmas).
 }
-\references{ }
+
 \author{ Jorma de Ronde }
-\note{ 
-}
+
 \seealso{ 
 \code{\link{plot}},  \code{\link{findSigLevelTrad}}, \code{\link{plotScaleSpace}}
 }

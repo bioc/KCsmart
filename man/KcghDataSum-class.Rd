@@ -2,7 +2,7 @@
 \docType{class}
 \alias{KcghDataSum-class}
 \alias{initialize,KcghDataSum-method}
-\alias{sort,KcghDataSum,missing-method}
+\alias{sort,KcghDataSum-method}
 
 \title{Class "KcghDataSum" }
 \description{Internal class}
@@ -20,7 +20,7 @@
 \section{Methods}{
   \describe{
     \item{initialize}{\code{signature(.Object = "KcghDataSum")}: For internal use only}
-    \item{sort}{\code{signature(x = "KcghDataSum", decreasing = "missing")}: For internal use only}
+    \item{sort}{\code{signature(x = "KcghDataSum")}: For internal use only}
 	 }
 }
 

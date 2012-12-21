@@ -76,12 +76,9 @@ Writes a summary of the sigSegments object to file. The resulting table contains
     \item{Probes}{ All probes from the original data that fall into this segment}
   }
 }
-\value{
 
-}
 \author{ Jorma de Ronde }
-\note{ 
-}
+
 \seealso{  \code{\link{calcSpm}}, \code{\link{getSigSegments}} }
 \examples{
 data(hsSampleData)

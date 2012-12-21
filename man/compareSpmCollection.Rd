@@ -23,10 +23,9 @@ compareSpmCollection(spmCollection, nperms=20, method=c("siggenes", "perm"), sig
 \value{
  Returns a compKc object which returns the original data and, depending on the method used, the permuted data or the fdr-delta value combinations as calculated by the siggenes package.
 }
-\references{ }
+
 \author{ Jorma de Ronde }
-\note{ 
-}
+
 \seealso{ 
 \code{\link{compareSpmCollection}},  \code{\link{getSigRegionsCompKC}}
 }

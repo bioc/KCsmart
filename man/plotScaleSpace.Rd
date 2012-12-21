@@ -22,8 +22,7 @@ plotScaleSpace(spms, sigLevels, chromosomes=NULL, type='b')
   Depending on the 'type' parameter, produces one or two plots, one for the gains and one for the losses. The heatmap color indicates the level of the gain or loss.
 }
 \author{ Jorma de Ronde }
-\note{ 
-}
+
 \seealso{ \code{\link{plot}} }
 \examples{
 data(hsSampleData)

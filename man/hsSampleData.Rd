@@ -9,6 +9,5 @@ To be used with the KCsmart package.
 \usage{hsSampleData}
 \format{A data.frame containing 3268 rows and 22 columns}
 \source{Artificial data set}
-\references{
-}
+
 \keyword{datasets}

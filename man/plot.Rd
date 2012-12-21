@@ -36,8 +36,7 @@ plot(x,y, ...)
   \item{add}{ When set to true the plot is added to the current plot device}
   \item{...}{Any other parameters you would like to pass to 'plot'. See 'par' for more details.}
 }
-\details{
-}
+
 \value{
  Plots the sample point matrix. The gains and the losses are plotted separately. The KC normalized score is plotted on the y-axis, the genomic position on the x-axis.
  If centromeres are present these are represented by dotted, lightblue lines.
@@ -48,8 +47,7 @@ The function 'idPoints' can be used to identify points in the sample point matri
 In case of plotting a compKc object, col1 and col2 can be used to set the colors of the group 1 and group 2 mean values respectively.
 }
 \author{ Jorma de Ronde }
-\note{ 
-}
+
 \seealso{  \code{\link{calcSpm}}, \code{\link{plotScaleSpace}}, \code{\link{idPoints}} }
 \examples{
 data(hsSampleData)
