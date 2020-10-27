@@ -1,7 +1,7 @@
 Package: KCsmart
 Type: Package
 Title: Multi sample aCGH analysis package using kernel convolution
-Version: 2.48.0
+Version: 2.49.0
 Date: 2009-11-26
 Author: Jorma de Ronde, Christiaan Klijn, Arno Velds
 Maintainer: Jorma de Ronde <j.d.ronde@nki.nl>
